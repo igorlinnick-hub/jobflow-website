@@ -74,9 +74,9 @@ export default function LoginForm() {
           <input type="checkbox" name="remember" className="rounded border-border accent-accent" />
           Remember me
         </label>
-        <button type="button" className="text-sm text-accent hover:text-accent2">
+        <a href="/auth/reset-password" className="text-sm text-accent hover:text-accent2">
           Forgot password?
-        </button>
+        </a>
       </div>
 
       <Button type="submit" fullWidth disabled={loading}>

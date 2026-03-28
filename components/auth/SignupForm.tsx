@@ -11,6 +11,7 @@ export default function SignupForm() {
   const supabase = createClient();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [waitlisted, setWaitlisted] = useState(false);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -23,6 +24,7 @@ export default function SignupForm() {
     const email = form.get("email") as string;
     const password = form.get("password") as string;
     const confirm = form.get("confirm_password") as string;
+    const inviteCode = (form.get("invite_code") as string || "").trim();
 
     if (password.length < 8) {
       setError("Password must be at least 8 characters.");
@@ -36,6 +38,46 @@ export default function SignupForm() {
       return;
     }
 
+    // Validate invite code
+    if (inviteCode) {
+      const { data: codeData } = await supabase
+        .from("invite_codes")
+        .select("id, uses, max_uses")
+        .eq("code", inviteCode.toUpperCase())
+        .eq("active", true)
+        .single();
+
+      if (!codeData) {
+        setError("Invalid invite code.");
+        setLoading(false);
+        return;
+      }
+
+      if (codeData.max_uses && codeData.uses >= codeData.max_uses) {
+        setError("This invite code has been fully used.");
+        setLoading(false);
+        return;
+      }
+    }
+
+    if (!inviteCode) {
+      // No invite code — add to waitlist
+      const { error: waitlistError } = await supabase
+        .from("waitlist")
+        .upsert({ email, first_name: firstName, last_name: lastName }, { onConflict: "email" });
+
+      setLoading(false);
+
+      if (waitlistError) {
+        setError("Something went wrong. Please try again.");
+        return;
+      }
+
+      setWaitlisted(true);
+      return;
+    }
+
+    // Sign up with valid invite code
     const { error: authError } = await supabase.auth.signUp({
       email,
       password,
@@ -43,6 +85,7 @@ export default function SignupForm() {
         data: {
           first_name: firstName,
           last_name: lastName,
+          invite_code: inviteCode.toUpperCase(),
         },
       },
     });
@@ -52,6 +95,9 @@ export default function SignupForm() {
       setLoading(false);
       return;
     }
+
+    // Increment invite code usage
+    await supabase.rpc("increment_invite_code_uses", { code_value: inviteCode.toUpperCase() });
 
     router.push("/onboarding");
     router.refresh();
@@ -64,6 +110,22 @@ export default function SignupForm() {
         redirectTo: `${window.location.origin}/auth/callback`,
       },
     });
+  }
+
+  if (waitlisted) {
+    return (
+      <div className="text-center space-y-4 py-4">
+        <div className="w-14 h-14 mx-auto rounded-full bg-accent/10 flex items-center justify-center">
+          <svg className="w-7 h-7 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 13l4 4L19 7" />
+          </svg>
+        </div>
+        <h3 className="text-lg font-semibold text-text">You&apos;re on the waitlist!</h3>
+        <p className="text-sm text-text2">
+          We&apos;ll send you an invite code when a spot opens up. Stay tuned.
+        </p>
+      </div>
+    );
   }
 
   return (
@@ -114,6 +176,13 @@ export default function SignupForm() {
         placeholder="Repeat password"
         required
         autoComplete="new-password"
+      />
+
+      <Input
+        label="Invite code"
+        name="invite_code"
+        placeholder="Enter code (optional)"
+        hint="Have an invite code? Enter it for instant access. No code? Join the waitlist."
       />
 
       <Button type="submit" fullWidth disabled={loading}>
