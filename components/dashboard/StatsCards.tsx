@@ -1,0 +1,72 @@
+interface StatCardProps {
+  label: string;
+  value: string | number;
+  change?: string;
+  icon: React.ReactNode;
+}
+
+function StatCard({ label, value, change, icon }: StatCardProps) {
+  return (
+    <div className="bg-surface border border-border rounded-xl p-5">
+      <div className="flex items-start justify-between">
+        <div>
+          <p className="text-sm text-text2">{label}</p>
+          <p className="text-2xl font-bold text-text mt-1">{value}</p>
+          {change && <p className="text-xs text-green mt-1">{change}</p>}
+        </div>
+        <div className="p-2 bg-accent/10 rounded-lg text-accent">{icon}</div>
+      </div>
+    </div>
+  );
+}
+
+interface StatsCardsProps {
+  totalJobs: number;
+  totalApplications: number;
+  applicationsToday: number;
+  responseRate: number;
+}
+
+export default function StatsCards({ totalJobs, totalApplications, applicationsToday, responseRate }: StatsCardsProps) {
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <StatCard
+        label="Jobs Found"
+        value={totalJobs}
+        icon={
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+        }
+      />
+      <StatCard
+        label="Applications Sent"
+        value={totalApplications}
+        icon={
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+          </svg>
+        }
+      />
+      <StatCard
+        label="Applied Today"
+        value={applicationsToday}
+        change="+3 today"
+        icon={
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+          </svg>
+        }
+      />
+      <StatCard
+        label="Response Rate"
+        value={`${(responseRate * 100).toFixed(0)}%`}
+        icon={
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+          </svg>
+        }
+      />
+    </div>
+  );
+}

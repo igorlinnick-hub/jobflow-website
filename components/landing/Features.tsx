@@ -30,7 +30,7 @@ const features = [
     ),
   },
   {
-    title: "Telegram Notifications",
+    title: "SMS Notifications",
     subtitle: "Real-time alerts",
     description: "Get notified instantly when you receive a response. Never miss an interview invitation again.",
     icon: (
