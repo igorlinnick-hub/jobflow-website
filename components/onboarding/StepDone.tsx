@@ -9,9 +9,10 @@ interface Props {
   resumeFile: File | null;
   onBack: () => void;
   onFinish: () => void;
+  saving?: boolean;
 }
 
-export default function StepDone({ profile, resumeFile, onBack, onFinish }: Props) {
+export default function StepDone({ profile, resumeFile, onBack, onFinish, saving }: Props) {
   const locationLabel = LOCATIONS.find((l) => l.value === profile.location)?.label || profile.location;
   const jobTypeLabel = JOB_TYPES.find((j) => j.value === profile.job_type)?.label || profile.job_type;
 
@@ -56,8 +57,8 @@ export default function StepDone({ profile, resumeFile, onBack, onFinish }: Prop
           <Button variant="secondary" href="/extension">
             Install Extension
           </Button>
-          <Button onClick={onFinish}>
-            Go to Dashboard
+          <Button onClick={onFinish} disabled={saving}>
+            {saving ? "Saving..." : "Go to Dashboard"}
           </Button>
         </div>
       </div>

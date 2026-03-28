@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
 import StepPersonalInfo from "./StepPersonalInfo";
 import StepJobPreferences from "./StepJobPreferences";
 import StepPlatforms from "./StepPlatforms";
@@ -35,9 +36,26 @@ const initialProfile: UserProfile = {
 
 export default function OnboardingWizard() {
   const router = useRouter();
+  const supabase = createClient();
   const [step, setStep] = useState(1);
   const [profile, setProfile] = useState<UserProfile>(initialProfile);
   const [resumeFile, setResumeFile] = useState<File | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  // Pre-fill email from auth user
+  useEffect(() => {
+    async function loadUser() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        updateProfile({
+          email: user.email || "",
+          name: user.user_metadata?.first_name || "",
+          last_name: user.user_metadata?.last_name || "",
+        });
+      }
+    }
+    loadUser();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   function updateProfile(updates: Partial<UserProfile>) {
     setProfile((prev) => ({ ...prev, ...updates }));
@@ -51,10 +69,54 @@ export default function OnboardingWizard() {
     if (step > 1) setStep(step - 1);
   }
 
-  function finish() {
-    // TODO: Save profile to backend
-    console.log("Profile:", profile);
+  async function finish() {
+    setSaving(true);
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      router.push("/login");
+      return;
+    }
+
+    // Upload resume if provided
+    let resumeUrl = null;
+    if (resumeFile) {
+      const filePath = `${user.id}/${resumeFile.name}`;
+      const { error: uploadError } = await supabase.storage
+        .from("resumes")
+        .upload(filePath, resumeFile, { upsert: true });
+
+      if (!uploadError) {
+        resumeUrl = filePath;
+      }
+    }
+
+    // Save profile to Supabase
+    const { error } = await supabase
+      .from("profiles")
+      .update({
+        name: profile.name,
+        last_name: profile.last_name,
+        phone: profile.phone,
+        keywords: profile.keywords,
+        location: profile.location,
+        job_type: profile.job_type,
+        platforms: profile.platforms,
+        writing_style: profile.writing_style,
+        resume_url: resumeUrl,
+        onboarding_completed: true,
+      })
+      .eq("user_id", user.id);
+
+    setSaving(false);
+
+    if (error) {
+      console.error("Failed to save profile:", error);
+      return;
+    }
+
     router.push("/dashboard");
+    router.refresh();
   }
 
   return (
@@ -128,7 +190,7 @@ export default function OnboardingWizard() {
             <StepWritingStyle profile={profile} updateProfile={updateProfile} onNext={next} onBack={back} />
           )}
           {step === 6 && (
-            <StepDone profile={profile} resumeFile={resumeFile} onBack={back} onFinish={finish} />
+            <StepDone profile={profile} resumeFile={resumeFile} onBack={back} onFinish={finish} saving={saving} />
           )}
         </div>
       </div>

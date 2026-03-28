@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { createClient } from "@/lib/supabase/client";
 
 const NAV_ITEMS = [
   {
@@ -36,6 +38,23 @@ const NAV_ITEMS = [
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const supabase = createClient();
+  const [email, setEmail] = useState("");
+
+  useEffect(() => {
+    async function loadUser() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) setEmail(user.email || "");
+    }
+    loadUser();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  async function handleLogout() {
+    await supabase.auth.signOut();
+    router.push("/");
+    router.refresh();
+  }
 
   return (
     <div className="min-h-screen bg-background dark">
@@ -47,10 +66,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </Link>
 
           <div className="flex items-center gap-4">
-            <span className="text-sm text-text2">igor@example.com</span>
-            <Link href="/" className="text-sm text-text2 hover:text-text transition">
+            <span className="text-sm text-text2">{email}</span>
+            <button
+              onClick={handleLogout}
+              className="text-sm text-text2 hover:text-text transition"
+            >
               Log out
-            </Link>
+            </button>
           </div>
         </div>
       </header>
