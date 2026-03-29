@@ -2,8 +2,8 @@ import Link from "next/link";
 
 const PLANS = [
   {
-    name: "Starter",
-    price: "Free",
+    name: "Free",
+    price: "$0",
     period: "",
     description: "Try JobFlow with basic features",
     features: [
@@ -18,7 +18,7 @@ const PLANS = [
   },
   {
     name: "Pro",
-    price: "$29",
+    price: "$16",
     period: "/month",
     description: "Full automation for serious job seekers",
     features: [
@@ -34,29 +34,12 @@ const PLANS = [
     href: "/signup?plan=pro",
     highlighted: true,
   },
-  {
-    name: "Team",
-    price: "$79",
-    period: "/month",
-    description: "For agencies and career coaches",
-    features: [
-      "Everything in Pro",
-      "Up to 5 user profiles",
-      "Team dashboard",
-      "API access",
-      "Custom integrations",
-      "Dedicated support",
-    ],
-    cta: "Contact Us",
-    href: "/signup?plan=team",
-    highlighted: false,
-  },
 ];
 
 export default function Pricing() {
   return (
-    <section id="pricing" className="py-20 px-4 sm:px-6 lg:px-8 bg-gray-50">
-      <div className="max-w-6xl mx-auto">
+    <section id="pricing" className="py-20 px-4 sm:px-6 lg:px-8 bg-[#F7F7FB]">
+      <div className="max-w-4xl mx-auto">
         <div className="text-center mb-14">
           <h2 className="text-3xl sm:text-4xl font-bold text-gray-900">
             Simple, transparent pricing
@@ -66,15 +49,15 @@ export default function Pricing() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-3xl mx-auto">
           {PLANS.map((plan) => (
             <div
               key={plan.name}
               className={[
-                "relative rounded-2xl p-8 flex flex-col",
+                "relative rounded-[10px] p-8 flex flex-col",
                 plan.highlighted
                   ? "bg-white border-2 border-accent shadow-xl shadow-accent/10 scale-105"
-                  : "bg-white border border-gray-200",
+                  : "bg-white border border-gray-200 shadow-[0_4px_20px_rgba(0,0,0,0.06)]",
               ].join(" ")}
             >
               {plan.highlighted && (
@@ -112,7 +95,7 @@ export default function Pricing() {
               <Link
                 href={plan.href}
                 className={[
-                  "block text-center py-3 px-6 rounded-lg font-medium transition",
+                  "block text-center py-3 px-6 rounded-[10px] font-medium transition",
                   plan.highlighted
                     ? "bg-accent hover:bg-accent/90 text-white shadow-lg shadow-accent/25"
                     : "border border-gray-300 hover:border-gray-400 text-gray-700",

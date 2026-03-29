@@ -12,7 +12,7 @@ export default function CTA() {
         </p>
         <Link
           href="/signup"
-          className="inline-block bg-white text-accent font-semibold px-8 py-3.5 rounded-lg text-lg hover:bg-gray-100 transition shadow-lg"
+          className="inline-block bg-white text-accent font-semibold px-8 py-3.5 rounded-[10px] text-lg hover:bg-gray-100 transition shadow-lg"
         >
           Get Started Free
         </Link>
