@@ -6,7 +6,8 @@ import Features from "@/components/landing/Features";
 import AIProcess from "@/components/landing/AIProcess";
 import StatsCounter from "@/components/landing/StatsCounter";
 import Pricing from "@/components/landing/Pricing";
-import CTA from "@/components/landing/CTA";
+import FAQ from "@/components/landing/FAQ";
+import GradientCTA from "@/components/landing/GradientCTA";
 import Footer from "@/components/landing/Footer";
 
 export default function Home() {
@@ -21,7 +22,8 @@ export default function Home() {
         <AIProcess />
         <StatsCounter />
         <Pricing />
-        <CTA />
+        <FAQ />
+        <GradientCTA />
       </main>
       <Footer />
     </>
