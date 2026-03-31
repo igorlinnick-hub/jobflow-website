@@ -186,56 +186,36 @@ export default function HowItWorks() {
 
   return (
     <section id="how-it-works" ref={sectionRef} className="relative" style={{ height: "400vh" }}>
-      <div className="sticky top-0 h-screen overflow-hidden" style={{ background: "linear-gradient(135deg, #e8f4f8 0%, #f0eeff 30%, #fef3e2 60%, #e8f4f8 100%)" }}>
-        {/* Cloud blobs */}
+      <div className="sticky top-0 h-screen overflow-hidden" style={{ background: "linear-gradient(160deg, #f5f3ff 0%, #f8f7fc 40%, #faf5ff 70%, #f5f3ff 100%)" }}>
+        {/* Subtle cloud blobs — very soft, matching purple palette */}
+        <div
+          className="absolute rounded-full pointer-events-none"
+          style={{
+            width: 600, height: 600,
+            background: "radial-gradient(circle, rgba(108,92,231,0.04) 0%, transparent 70%)",
+            filter: "blur(80px)",
+            top: "-10%", left: "0%",
+            animation: "cloudFloat1 24s ease-in-out infinite alternate",
+          }}
+        />
         <div
           className="absolute rounded-full pointer-events-none"
           style={{
             width: 500, height: 500,
-            background: "radial-gradient(circle, rgba(135,206,250,0.25) 0%, transparent 70%)",
-            filter: "blur(60px)",
-            top: "-5%", left: "5%",
-            animation: "cloudFloat1 18s ease-in-out infinite alternate",
+            background: "radial-gradient(circle, rgba(167,139,250,0.05) 0%, transparent 70%)",
+            filter: "blur(80px)",
+            bottom: "-5%", right: "0%",
+            animation: "cloudFloat2 28s ease-in-out infinite alternate",
           }}
         />
         <div
           className="absolute rounded-full pointer-events-none"
           style={{
-            width: 450, height: 450,
-            background: "radial-gradient(circle, rgba(255,183,120,0.2) 0%, transparent 70%)",
-            filter: "blur(60px)",
-            bottom: "0%", right: "5%",
-            animation: "cloudFloat2 22s ease-in-out infinite alternate",
-          }}
-        />
-        <div
-          className="absolute rounded-full pointer-events-none"
-          style={{
-            width: 350, height: 350,
-            background: "radial-gradient(circle, rgba(167,139,250,0.15) 0%, transparent 70%)",
-            filter: "blur(50px)",
-            top: "30%", left: "40%",
-            animation: "cloudFloat3 15s ease-in-out infinite alternate",
-          }}
-        />
-        <div
-          className="absolute rounded-full pointer-events-none"
-          style={{
-            width: 300, height: 250,
-            background: "radial-gradient(circle, rgba(255,218,170,0.2) 0%, transparent 70%)",
-            filter: "blur(50px)",
-            top: "10%", right: "20%",
-            animation: "cloudFloat1 20s ease-in-out infinite alternate-reverse",
-          }}
-        />
-        <div
-          className="absolute rounded-full pointer-events-none"
-          style={{
-            width: 400, height: 300,
-            background: "radial-gradient(circle, rgba(173,216,230,0.2) 0%, transparent 70%)",
-            filter: "blur(55px)",
-            bottom: "10%", left: "25%",
-            animation: "cloudFloat2 16s ease-in-out infinite alternate-reverse",
+            width: 400, height: 400,
+            background: "radial-gradient(circle, rgba(196,181,253,0.04) 0%, transparent 70%)",
+            filter: "blur(70px)",
+            top: "25%", left: "45%",
+            animation: "cloudFloat3 20s ease-in-out infinite alternate",
           }}
         />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center">
