@@ -8,7 +8,15 @@ const STATS = [
   { value: 3, label: "More interviews", suffix: "x" },
 ];
 
-function AnimatedNumber({ target, suffix, active }: { target: number; suffix: string; active: boolean }) {
+function AnimatedNumber({
+  target,
+  suffix,
+  active,
+}: {
+  target: number;
+  suffix: string;
+  active: boolean;
+}) {
   const [current, setCurrent] = useState(0);
 
   useEffect(() => {
@@ -16,15 +24,12 @@ function AnimatedNumber({ target, suffix, active }: { target: number; suffix: st
     setCurrent(0);
     const duration = 2000;
     const steps = 60;
-    const increment = target / steps;
     let frame = 0;
 
     const interval = setInterval(() => {
       frame++;
-      // ease-out: fast start, slow end
       const progress = 1 - Math.pow(1 - frame / steps, 3);
-      const value = Math.round(target * progress);
-      setCurrent(value);
+      setCurrent(Math.round(target * progress));
       if (frame >= steps) {
         setCurrent(target);
         clearInterval(interval);
@@ -35,8 +40,12 @@ function AnimatedNumber({ target, suffix, active }: { target: number; suffix: st
   }, [active, target]);
 
   return (
-    <span className="text-5xl font-bold text-[#6C5CE7]" style={{ fontFamily: "'Syne', sans-serif" }}>
-      {active ? current.toLocaleString() : "0"}{suffix}
+    <span
+      className="text-5xl font-bold text-[#6C5CE7] block"
+      style={{ fontFamily: "'Syne', sans-serif" }}
+    >
+      {active ? current.toLocaleString() : "0"}
+      {suffix}
     </span>
   );
 }
@@ -46,26 +55,30 @@ export default function StatsCounter() {
   const [active, setActive] = useState(false);
 
   useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
     const observer = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) setActive(true); },
-      { threshold: 0.3 }
+      ([entry]) => {
+        if (entry.isIntersecting) setActive(true);
+      },
+      { threshold: 0.2 }
     );
-    if (ref.current) observer.observe(ref.current);
+    observer.observe(el);
     return () => observer.disconnect();
   }, []);
 
   return (
-    <section ref={ref} className="py-16 px-4 sm:px-6 lg:px-8 bg-[#F7F7FB]">
+    <section ref={ref} className="py-20 px-4 sm:px-6 lg:px-8 bg-white">
       <div className="max-w-4xl mx-auto">
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
-          {STATS.map((stat, i) => (
-            <div
-              key={stat.label}
-              className="text-center"
-              style={{ transitionDelay: `${i * 0.15}s` }}
-            >
-              <AnimatedNumber target={stat.value} suffix={stat.suffix} active={active} />
-              <p className="text-[#6B6B8A] text-sm mt-2">{stat.label}</p>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-12 text-center">
+          {STATS.map((stat) => (
+            <div key={stat.label}>
+              <AnimatedNumber
+                target={stat.value}
+                suffix={stat.suffix}
+                active={active}
+              />
+              <p className="text-[#6B6B8A] text-base mt-3">{stat.label}</p>
             </div>
           ))}
         </div>

@@ -11,25 +11,43 @@ export default function Header() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <Link href="/" className="text-xl font-bold text-[#1A1A2E]" style={{ fontFamily: "'Syne', sans-serif" }}>
-            <span className="text-accent">Job</span>Flow
+            <span className="text-[#6C5CE7]">Job</span>Flow
           </Link>
 
           <nav className="hidden md:flex items-center gap-8">
-            <a href="#how-it-works" className="nav-link text-sm text-[#6B6B8A] hover:text-[#1A1A2E] transition">
-              How it works
-            </a>
-            <a href="#features" className="nav-link text-sm text-[#6B6B8A] hover:text-[#1A1A2E] transition">
-              Features
-            </a>
-            <a href="#pricing" className="nav-link text-sm text-[#6B6B8A] hover:text-[#1A1A2E] transition">
-              Pricing
-            </a>
-            <Link href="/login" className="nav-link text-sm text-[#6B6B8A] hover:text-[#1A1A2E] transition">
+            {[
+              { label: "How it works", href: "#how-it-works" },
+              { label: "Features", href: "#features" },
+              { label: "Pricing", href: "#pricing" },
+            ].map((link) => (
+              <a
+                key={link.href}
+                href={link.href}
+                className="relative text-sm text-[#6B6B8A] hover:text-[#1A1A2E] transition-colors group"
+              >
+                {link.label}
+                <span className="absolute bottom-[-2px] left-0 w-0 h-[1.5px] bg-[#6C5CE7] transition-all duration-200 group-hover:w-full" />
+              </a>
+            ))}
+            <Link
+              href="/login"
+              className="relative text-sm text-[#6B6B8A] hover:text-[#1A1A2E] transition-colors group"
+            >
               Log in
+              <span className="absolute bottom-[-2px] left-0 w-0 h-[1.5px] bg-[#6C5CE7] transition-all duration-200 group-hover:w-full" />
             </Link>
             <Link
               href="/signup"
-              className="btn-primary bg-accent hover:bg-accent-hover text-white text-sm font-medium px-4 py-2 rounded-[10px]"
+              className="bg-[#6C5CE7] text-white text-sm font-medium px-4 py-2 rounded-[10px]"
+              style={{ transition: "transform 0.15s, box-shadow 0.15s" }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = "translateY(-2px)";
+                e.currentTarget.style.boxShadow = "0 8px 24px rgba(108,92,231,0.25)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = "translateY(0)";
+                e.currentTarget.style.boxShadow = "none";
+              }}
             >
               Sign Up Free
             </Link>
@@ -67,7 +85,7 @@ export default function Header() {
               </Link>
               <Link
                 href="/signup"
-                className="bg-accent text-white text-sm font-medium px-4 py-2 rounded-[10px] text-center"
+                className="bg-[#6C5CE7] text-white text-sm font-medium px-4 py-2 rounded-[10px] text-center"
               >
                 Sign Up Free
               </Link>

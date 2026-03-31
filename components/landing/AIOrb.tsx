@@ -13,9 +13,15 @@ const ORBIT_DOTS = [
 
 export default function AIOrb() {
   return (
-    <div className="relative w-[220px] h-[220px] lg:w-[320px] lg:h-[320px] mx-auto">
+    <div className="relative w-[320px] h-[320px] mx-auto">
       {/* Gradient blob behind */}
-      <div className="absolute inset-[-90px] bg-[radial-gradient(circle,rgba(108,92,231,0.08)_0%,transparent_70%)] rounded-full" />
+      <div
+        className="absolute rounded-full"
+        style={{
+          inset: "-90px",
+          background: "radial-gradient(circle, rgba(108,92,231,0.08) 0%, transparent 70%)",
+        }}
+      />
 
       {/* Outer pulsing layer */}
       <motion.div
@@ -30,8 +36,9 @@ export default function AIOrb() {
 
       {/* Middle rotating layer — clockwise */}
       <motion.div
-        className="absolute inset-[15%] rounded-full"
+        className="absolute rounded-full"
         style={{
+          inset: "15%",
           background: "conic-gradient(from 0deg, #6C5CE7, #a78bfa, #c4b5fd, #6C5CE7)",
           opacity: 0.6,
           filter: "blur(20px)",
@@ -42,8 +49,9 @@ export default function AIOrb() {
 
       {/* Inner rotating layer — counter-clockwise */}
       <motion.div
-        className="absolute inset-[25%] rounded-full"
+        className="absolute rounded-full"
         style={{
+          inset: "25%",
           background: "conic-gradient(from 180deg, #a78bfa, #c4b5fd, #ffffff, #a78bfa)",
           opacity: 0.8,
           filter: "blur(12px)",
@@ -54,8 +62,9 @@ export default function AIOrb() {
 
       {/* Core bright center */}
       <div
-        className="absolute inset-[35%] rounded-full"
+        className="absolute rounded-full"
         style={{
+          inset: "35%",
           background: "radial-gradient(circle, #ffffff 0%, #c4b5fd 40%, #6C5CE7 100%)",
           boxShadow: "0 0 60px rgba(108,92,231,0.4)",
         }}
@@ -65,8 +74,13 @@ export default function AIOrb() {
       {ORBIT_DOTS.map((dot, i) => (
         <motion.div
           key={i}
-          className="absolute top-1/2 left-1/2"
-          style={{ width: dot.size, height: dot.size }}
+          className="absolute"
+          style={{
+            top: "50%",
+            left: "50%",
+            width: dot.size,
+            height: dot.size,
+          }}
           animate={{ rotate: 360 }}
           transition={{
             duration: dot.duration,
@@ -82,7 +96,7 @@ export default function AIOrb() {
               height: dot.size,
               background: dot.color,
               boxShadow: `0 0 ${dot.size * 2}px ${dot.color}`,
-              transform: `translateX(${dot.radius * (typeof window !== "undefined" && window.innerWidth < 1024 ? 0.69 : 1)}px) translateY(-50%)`,
+              transform: `translateX(${dot.radius}px) translateY(-50%)`,
             }}
           />
         </motion.div>

@@ -1,5 +1,6 @@
 "use client";
 
+import { motion } from "framer-motion";
 import ScrollReveal from "./ScrollReveal";
 
 const features = [
@@ -81,14 +82,23 @@ export default function Features() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {features.map((feature, i) => (
             <ScrollReveal key={feature.title} delay={i * 0.12}>
-              <div className="feature-card bg-white rounded-[10px] p-6 border border-[#E8E8F0] shadow-[var(--shadow)] hover:shadow-[var(--shadow-hover)] h-full">
-                <div className="w-12 h-12 bg-accent-light rounded-lg flex items-center justify-center text-accent mb-4">
+              <motion.div
+                className="bg-white rounded-[10px] p-6 border border-[#E8E8F0] h-full"
+                style={{ boxShadow: "0 2px 8px rgba(108,92,231,0.06)" }}
+                whileHover={{
+                  y: -4,
+                  borderColor: "#6C5CE7",
+                  boxShadow: "0 8px 24px rgba(108,92,231,0.14)",
+                }}
+                transition={{ duration: 0.2 }}
+              >
+                <div className="w-12 h-12 bg-[#EEE9FF] rounded-lg flex items-center justify-center text-[#6C5CE7] mb-4">
                   {feature.icon}
                 </div>
                 <h3 className="text-lg font-semibold text-[#1A1A2E] mb-1">{feature.title}</h3>
-                <div className="text-xs font-medium text-accent mb-3">{feature.subtitle}</div>
+                <div className="text-xs font-medium text-[#6C5CE7] mb-3">{feature.subtitle}</div>
                 <p className="text-sm text-[#6B6B8A]">{feature.description}</p>
-              </div>
+              </motion.div>
             </ScrollReveal>
           ))}
         </div>
