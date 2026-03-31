@@ -1,3 +1,7 @@
+"use client";
+
+import ScrollReveal from "./ScrollReveal";
+
 const features = [
   {
     title: "AI Cover Letters",
@@ -65,28 +69,27 @@ export default function Features() {
   return (
     <section id="features" className="py-20 px-4 sm:px-6 lg:px-8 bg-white">
       <div className="max-w-6xl mx-auto">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
+        <ScrollReveal className="text-center mb-16">
+          <h2 className="text-3xl sm:text-4xl font-bold text-[#1A1A2E] mb-4" style={{ fontFamily: "'Syne', sans-serif" }}>
             Everything you need to land your next job
           </h2>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+          <p className="text-lg text-[#6B6B8A] max-w-2xl mx-auto">
             A complete toolkit that handles the tedious parts of job searching so you can focus on what matters.
           </p>
-        </div>
+        </ScrollReveal>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {features.map((feature) => (
-            <div
-              key={feature.title}
-              className="bg-white rounded-[10px] p-6 border border-gray-100 shadow-[0_4px_20px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.1)] transition"
-            >
-              <div className="w-12 h-12 bg-accent/10 rounded-lg flex items-center justify-center text-accent mb-4">
-                {feature.icon}
+          {features.map((feature, i) => (
+            <ScrollReveal key={feature.title} delay={i * 0.12}>
+              <div className="feature-card bg-white rounded-[10px] p-6 border border-[#E8E8F0] shadow-[var(--shadow)] hover:shadow-[var(--shadow-hover)] h-full">
+                <div className="w-12 h-12 bg-accent-light rounded-lg flex items-center justify-center text-accent mb-4">
+                  {feature.icon}
+                </div>
+                <h3 className="text-lg font-semibold text-[#1A1A2E] mb-1">{feature.title}</h3>
+                <div className="text-xs font-medium text-accent mb-3">{feature.subtitle}</div>
+                <p className="text-sm text-[#6B6B8A]">{feature.description}</p>
               </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-1">{feature.title}</h3>
-              <div className="text-xs font-medium text-accent mb-3">{feature.subtitle}</div>
-              <p className="text-sm text-gray-600">{feature.description}</p>
-            </div>
+            </ScrollReveal>
           ))}
         </div>
       </div>

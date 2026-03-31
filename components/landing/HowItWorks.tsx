@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import ScrollReveal from "./ScrollReveal";
 
 const steps = [
   {
@@ -46,54 +46,30 @@ const steps = [
 ];
 
 export default function HowItWorks() {
-  const sectionRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add("visible");
-          }
-        });
-      },
-      { threshold: 0.15 }
-    );
-
-    const items = sectionRef.current?.querySelectorAll(".scroll-reveal");
-    items?.forEach((item) => observer.observe(item));
-
-    return () => observer.disconnect();
-  }, []);
-
   return (
     <section id="how-it-works" className="py-20 px-4 sm:px-6 lg:px-8 bg-[#F7F7FB]">
-      <div className="max-w-6xl mx-auto" ref={sectionRef}>
-        <div className="text-center mb-16">
-          <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
+      <div className="max-w-6xl mx-auto">
+        <ScrollReveal className="text-center mb-16">
+          <h2 className="text-3xl sm:text-4xl font-bold text-[#1A1A2E] mb-4" style={{ fontFamily: "'Syne', sans-serif" }}>
             How it works
           </h2>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+          <p className="text-lg text-[#6B6B8A] max-w-2xl mx-auto">
             From profile to applications in minutes. Four simple steps.
           </p>
-        </div>
+        </ScrollReveal>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {steps.map((step, i) => (
-            <div
-              key={step.number}
-              className="scroll-reveal relative"
-              style={{ transitionDelay: `${i * 0.15}s` }}
-            >
-              <div className="bg-white rounded-[10px] p-6 shadow-sm border border-gray-100 h-full hover:shadow-md transition">
-                <div className="w-12 h-12 bg-accent/10 rounded-lg flex items-center justify-center text-accent mb-4">
+            <ScrollReveal key={step.number} delay={i * 0.12}>
+              <div className="feature-card bg-white rounded-[10px] p-6 border border-[#E8E8F0] shadow-[var(--shadow)] hover:shadow-[var(--shadow-hover)] h-full">
+                <div className="w-12 h-12 bg-accent-light rounded-lg flex items-center justify-center text-accent mb-4">
                   {step.icon}
                 </div>
                 <div className="text-xs font-bold text-accent mb-2">STEP {step.number}</div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">{step.title}</h3>
-                <p className="text-sm text-gray-600">{step.description}</p>
+                <h3 className="text-lg font-semibold text-[#1A1A2E] mb-2">{step.title}</h3>
+                <p className="text-sm text-[#6B6B8A]">{step.description}</p>
               </div>
-            </div>
+            </ScrollReveal>
           ))}
         </div>
       </div>

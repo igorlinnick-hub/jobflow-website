@@ -7,26 +7,29 @@ export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-200">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-[#E8E8F0]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          <Link href="/" className="text-xl font-bold text-gray-900">
+          <Link href="/" className="text-xl font-bold text-[#1A1A2E]" style={{ fontFamily: "'Syne', sans-serif" }}>
             <span className="text-accent">Job</span>Flow
           </Link>
 
           <nav className="hidden md:flex items-center gap-8">
-            <a href="#how-it-works" className="text-sm text-gray-600 hover:text-gray-900 transition">
+            <a href="#how-it-works" className="nav-link text-sm text-[#6B6B8A] hover:text-[#1A1A2E] transition">
               How it works
             </a>
-            <a href="#features" className="text-sm text-gray-600 hover:text-gray-900 transition">
+            <a href="#features" className="nav-link text-sm text-[#6B6B8A] hover:text-[#1A1A2E] transition">
               Features
             </a>
-            <Link href="/login" className="text-sm text-gray-600 hover:text-gray-900 transition">
+            <a href="#pricing" className="nav-link text-sm text-[#6B6B8A] hover:text-[#1A1A2E] transition">
+              Pricing
+            </a>
+            <Link href="/login" className="nav-link text-sm text-[#6B6B8A] hover:text-[#1A1A2E] transition">
               Log in
             </Link>
             <Link
               href="/signup"
-              className="bg-accent hover:bg-accent/90 text-white text-sm font-medium px-4 py-2 rounded-lg transition"
+              className="btn-primary bg-accent hover:bg-accent-hover text-white text-sm font-medium px-4 py-2 rounded-[10px]"
             >
               Sign Up Free
             </Link>
@@ -37,7 +40,7 @@ export default function Header() {
             onClick={() => setMenuOpen(!menuOpen)}
             aria-label="Toggle menu"
           >
-            <svg className="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-6 h-6 text-[#1A1A2E]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               {menuOpen ? (
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               ) : (
@@ -48,20 +51,23 @@ export default function Header() {
         </div>
 
         {menuOpen && (
-          <div className="md:hidden pb-4 border-t border-gray-100">
+          <div className="md:hidden pb-4 border-t border-[#E8E8F0]">
             <div className="flex flex-col gap-3 pt-4">
-              <a href="#how-it-works" className="text-sm text-gray-600 hover:text-gray-900" onClick={() => setMenuOpen(false)}>
+              <a href="#how-it-works" className="text-sm text-[#6B6B8A] hover:text-[#1A1A2E]" onClick={() => setMenuOpen(false)}>
                 How it works
               </a>
-              <a href="#features" className="text-sm text-gray-600 hover:text-gray-900" onClick={() => setMenuOpen(false)}>
+              <a href="#features" className="text-sm text-[#6B6B8A] hover:text-[#1A1A2E]" onClick={() => setMenuOpen(false)}>
                 Features
               </a>
-              <Link href="/login" className="text-sm text-gray-600 hover:text-gray-900">
+              <a href="#pricing" className="text-sm text-[#6B6B8A] hover:text-[#1A1A2E]" onClick={() => setMenuOpen(false)}>
+                Pricing
+              </a>
+              <Link href="/login" className="text-sm text-[#6B6B8A] hover:text-[#1A1A2E]">
                 Log in
               </Link>
               <Link
                 href="/signup"
-                className="bg-accent text-white text-sm font-medium px-4 py-2 rounded-lg text-center"
+                className="bg-accent text-white text-sm font-medium px-4 py-2 rounded-[10px] text-center"
               >
                 Sign Up Free
               </Link>

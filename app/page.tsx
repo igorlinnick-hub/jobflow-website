@@ -1,8 +1,10 @@
 import Header from "@/components/landing/Header";
 import Hero from "@/components/landing/Hero";
+import Ticker from "@/components/landing/Ticker";
 import HowItWorks from "@/components/landing/HowItWorks";
 import Features from "@/components/landing/Features";
-import LiveDemo from "@/components/landing/LiveDemo";
+import AIProcess from "@/components/landing/AIProcess";
+import StatsCounter from "@/components/landing/StatsCounter";
 import Pricing from "@/components/landing/Pricing";
 import CTA from "@/components/landing/CTA";
 import Footer from "@/components/landing/Footer";
@@ -13,9 +15,11 @@ export default function Home() {
       <Header />
       <main className="flex-1">
         <Hero />
+        <Ticker />
         <HowItWorks />
         <Features />
-        <LiveDemo />
+        <AIProcess />
+        <StatsCounter />
         <Pricing />
         <CTA />
       </main>
