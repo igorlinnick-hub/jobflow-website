@@ -1,187 +1,170 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import AIOrb from "./AIOrb";
 
 /*
-  Section hints: each maps to a section id on the landing page.
-  The orb floats between sections, changes size, and shows a chat bubble.
+  Lightweight floating AI guide — uses a simple CSS gradient orb
+  instead of the heavy AIOrb component to avoid performance issues.
 */
-const SECTION_CONFIG = [
-  {
-    id: "hero",
-    message: "Hi! I'm your AI job assistant. Let me show you around.",
-    side: "left" as const,
-    orbSize: 64,
-  },
-  {
-    id: "how-it-works",
-    message: "This is how I help — from resume to auto-apply, all automated.",
-    side: "right" as const,
-    orbSize: 48,
-  },
-  {
-    id: "features",
-    message: "AI cover letters, auto-apply, multi-platform search — all built in.",
-    side: "left" as const,
-    orbSize: 52,
-  },
-  {
-    id: "chrome-demo",
-    message: "Watch how the Chrome extension fills forms and applies for you!",
-    side: "right" as const,
-    orbSize: 56,
-  },
-  {
-    id: "stats",
-    message: "Thousands of job seekers already saving hours every day.",
-    side: "left" as const,
-    orbSize: 44,
-  },
-  {
-    id: "pricing",
-    message: "Start free — upgrade when you're ready to go full autopilot.",
-    side: "right" as const,
-    orbSize: 48,
-  },
-  {
-    id: "faq",
-    message: "Got questions? I've got answers.",
-    side: "left" as const,
-    orbSize: 44,
-  },
+
+const SECTIONS = [
+  { id: "hero", message: "Hi! I'm your AI job assistant. Let me show you around." },
+  { id: "how-it-works", message: "This is how I help — from resume to auto-apply." },
+  { id: "features", message: "AI cover letters, multi-platform search — all built in." },
+  { id: "chrome-demo", message: "Watch the Chrome extension fill forms automatically!" },
+  { id: "stats", message: "Thousands of job seekers saving hours every day." },
+  { id: "pricing", message: "Start free — upgrade when you're ready." },
+  { id: "faq", message: "Got questions? I've got answers." },
 ];
 
+/* Tiny performant orb — pure CSS, no blur/blend */
+function MiniOrb() {
+  return (
+    <div className="relative w-full h-full">
+      <div
+        className="absolute inset-0 rounded-full"
+        style={{
+          background: "conic-gradient(from 0deg, #6C5CE7, #a78bfa, #c4b5fd, #ffffff, #a78bfa, #6C5CE7)",
+          animation: "orbSpin 4s linear infinite",
+        }}
+      />
+      <div
+        className="absolute rounded-full"
+        style={{
+          inset: "15%",
+          background: "radial-gradient(circle at 40% 35%, #ffffff 0%, #c4b5fd 50%, #6C5CE7 100%)",
+          animation: "orbShift 6s ease-in-out infinite alternate",
+        }}
+      />
+      <div
+        className="absolute rounded-full"
+        style={{
+          inset: "30%",
+          background: "radial-gradient(circle, rgba(255,255,255,0.9) 0%, rgba(167,139,250,0.5) 100%)",
+          animation: "orbShift 4s ease-in-out infinite alternate-reverse",
+        }}
+      />
+    </div>
+  );
+}
+
 export default function FloatingAIGuide() {
-  const [activeSection, setActiveSection] = useState(0);
+  const [activeIndex, setActiveIndex] = useState(-1);
   const [showBubble, setShowBubble] = useState(false);
   const [dismissed, setDismissed] = useState(false);
-  const [hasScrolled, setHasScrolled] = useState(false);
+  const bubbleTimer = useRef<ReturnType<typeof setTimeout>>();
+  const prevIndex = useRef(-1);
 
-  // Track which section is in view
   useEffect(() => {
-    const observers: IntersectionObserver[] = [];
+    const handleScroll = () => {
+      if (dismissed) return;
 
-    SECTION_CONFIG.forEach((config, index) => {
-      const el = document.getElementById(config.id);
-      if (!el) return;
+      const scrollY = window.scrollY;
+      const vh = window.innerHeight;
 
-      const observer = new IntersectionObserver(
-        ([entry]) => {
-          if (entry.isIntersecting) {
-            setActiveSection(index);
-            setShowBubble(false);
-            // Show bubble after a small delay when entering new section
-            setTimeout(() => setShowBubble(true), 600);
-          }
-        },
-        { threshold: 0.3 },
-      );
-      observer.observe(el);
-      observers.push(observer);
-    });
+      // Don't show until scrolled past hero
+      if (scrollY < vh * 0.5) {
+        if (activeIndex !== -1) setActiveIndex(-1);
+        return;
+      }
 
-    return () => observers.forEach((o) => o.disconnect());
-  }, []);
+      // Find which section is most visible
+      let best = -1;
+      let bestScore = 0;
 
-  // Track scroll to show guide only after user starts scrolling
-  useEffect(() => {
-    const onScroll = () => {
-      if (window.scrollY > 200) setHasScrolled(true);
+      for (let i = 0; i < SECTIONS.length; i++) {
+        const el = document.getElementById(SECTIONS[i].id);
+        if (!el) continue;
+        const rect = el.getBoundingClientRect();
+        const visible = Math.max(0, Math.min(rect.bottom, vh) - Math.max(rect.top, 0));
+        if (visible > bestScore) {
+          bestScore = visible;
+          best = i;
+        }
+      }
+
+      if (best !== -1 && best !== prevIndex.current) {
+        prevIndex.current = best;
+        setActiveIndex(best);
+        setShowBubble(false);
+        clearTimeout(bubbleTimer.current);
+        bubbleTimer.current = setTimeout(() => setShowBubble(true), 800);
+      }
     };
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
 
-  // Auto-hide bubble after 5s
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      clearTimeout(bubbleTimer.current);
+    };
+  }, [dismissed, activeIndex]);
+
+  // Auto-hide bubble
   useEffect(() => {
     if (!showBubble) return;
-    const timer = setTimeout(() => setShowBubble(false), 5000);
-    return () => clearTimeout(timer);
-  }, [showBubble, activeSection]);
+    const t = setTimeout(() => setShowBubble(false), 4500);
+    return () => clearTimeout(t);
+  }, [showBubble, activeIndex]);
 
-  if (dismissed || !hasScrolled) return null;
+  if (dismissed || activeIndex === -1) return null;
 
-  const config = SECTION_CONFIG[activeSection];
-  const isRight = config.side === "right";
+  const section = SECTIONS[activeIndex];
 
   return (
-    <motion.div
-      className="fixed z-50 pointer-events-none"
-      style={{
-        bottom: 32,
-        ...(isRight ? { right: 24 } : { left: 24 }),
-      }}
-      initial={{ opacity: 0, scale: 0.5, y: 40 }}
-      animate={{ opacity: 1, scale: 1, y: 0 }}
-      transition={{ type: "spring", stiffness: 200, damping: 20 }}
-      layout
-    >
+    <div className="fixed bottom-6 right-6 z-50" style={{ pointerEvents: "none" }}>
       {/* Chat bubble */}
       <AnimatePresence mode="wait">
         {showBubble && (
           <motion.div
-            key={activeSection}
-            className="pointer-events-auto mb-3"
-            initial={{ opacity: 0, y: 10, scale: 0.9 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -10, scale: 0.9 }}
-            transition={{ duration: 0.3, ease: "easeOut" }}
-            style={{ maxWidth: 240 }}
+            key={activeIndex}
+            className="mb-3"
+            style={{ maxWidth: 220, pointerEvents: "auto" }}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.25 }}
           >
             <div
-              className="relative bg-white rounded-2xl px-4 py-3 text-[13px] text-[#1A1A2E] leading-relaxed"
+              className="bg-white rounded-2xl px-4 py-3 text-[12px] text-[#1A1A2E] leading-relaxed relative"
               style={{
-                boxShadow: "0 8px 32px rgba(108,92,231,0.15), 0 2px 8px rgba(0,0,0,0.06)",
-                border: "1px solid rgba(108,92,231,0.1)",
+                boxShadow: "0 4px 20px rgba(108,92,231,0.12), 0 1px 4px rgba(0,0,0,0.05)",
+                border: "1px solid rgba(108,92,231,0.08)",
               }}
             >
-              {config.message}
-              {/* Tail */}
+              {section.message}
               <div
-                className="absolute -bottom-1.5 w-3 h-3 bg-white rotate-45"
-                style={{
-                  ...(isRight ? { right: 20 } : { left: 20 }),
-                  boxShadow: "2px 2px 4px rgba(108,92,231,0.08)",
-                  borderRight: "1px solid rgba(108,92,231,0.1)",
-                  borderBottom: "1px solid rgba(108,92,231,0.1)",
-                }}
+                className="absolute -bottom-1 right-5 w-2.5 h-2.5 bg-white rotate-45"
+                style={{ borderRight: "1px solid rgba(108,92,231,0.08)", borderBottom: "1px solid rgba(108,92,231,0.08)" }}
               />
             </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Orb + close button */}
-      <div className="relative pointer-events-auto">
-        <motion.div
-          className="cursor-pointer"
-          animate={{ scale: [1, 1.05, 1] }}
-          transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-          onClick={() => setShowBubble((s) => !s)}
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.95 }}
-        >
-          <motion.div
-            animate={{ width: config.orbSize, height: config.orbSize }}
-            transition={{ type: "spring", stiffness: 150, damping: 15 }}
-          >
-            <AIOrb size={config.orbSize} />
-          </motion.div>
-        </motion.div>
-
-        {/* Dismiss button */}
+      {/* Orb */}
+      <motion.div
+        className="relative cursor-pointer"
+        style={{ width: 52, height: 52, pointerEvents: "auto" }}
+        initial={{ opacity: 0, scale: 0 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ type: "spring", stiffness: 260, damping: 20 }}
+        onClick={() => setShowBubble((s) => !s)}
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.92 }}
+      >
+        <MiniOrb />
+        {/* Close */}
         <button
-          onClick={() => setDismissed(true)}
-          className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-white border border-[#E8E8F0] flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity"
-          style={{ boxShadow: "0 2px 6px rgba(0,0,0,0.1)" }}
+          onClick={(e) => { e.stopPropagation(); setDismissed(true); }}
+          className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-white border border-[#E8E8F0] flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity"
+          style={{ boxShadow: "0 1px 4px rgba(0,0,0,0.1)" }}
         >
-          <svg className="w-2.5 h-2.5 text-[#6B6B8A]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-2 h-2 text-[#6B6B8A]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
-      </div>
-    </motion.div>
+      </motion.div>
+    </div>
   );
 }

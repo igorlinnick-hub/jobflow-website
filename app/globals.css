@@ -93,6 +93,17 @@ h1, h2, h3 {
   100% { transform: translateX(100%); }
 }
 
+@keyframes orbSpin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes orbShift {
+  0% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(10%, -8%) scale(1.05); }
+  66% { transform: translate(-8%, 10%) scale(0.95); }
+  100% { transform: translate(5%, 5%) scale(1.02); }
+}
+
 @keyframes blob1 {
   0% { transform: translate(0, 0); }
   100% { transform: translate(200px, 150px); }
