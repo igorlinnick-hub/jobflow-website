@@ -1,8 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
+import { useState, useEffect } from "react";
 import AIOrb from "./AIOrb";
+
+const AI_PROMPTS = [
+  { question: "What salary should I expect?", answer: "Based on your skills, $95K–$140K for remote roles." },
+  { question: "Best keywords for my resume?", answer: "Growth marketing, data-driven, pipeline generation." },
+  { question: "How many jobs can I apply to?", answer: "Up to 50 applications per day, fully automated." },
+  { question: "Will cover letters sound like me?", answer: "Yes — AI matches your writing style perfectly." },
+];
 
 const container = {
   hidden: {},
@@ -13,6 +21,121 @@ const fadeUp = {
   hidden: { opacity: 0, y: 24 },
   show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" as const } },
 };
+
+function HeroOrb() {
+  const [promptIndex, setPromptIndex] = useState(0);
+  const [phase, setPhase] = useState<"question" | "answer" | "pause">("pause");
+
+  useEffect(() => {
+    // Cycle: pause → question → answer → pause → next
+    const timers: ReturnType<typeof setTimeout>[] = [];
+    const t = (fn: () => void, ms: number) => { timers.push(setTimeout(fn, ms)); };
+
+    t(() => setPhase("question"), 1200);
+    t(() => setPhase("answer"), 3000);
+    t(() => setPhase("pause"), 6000);
+    t(() => {
+      setPromptIndex((i) => (i + 1) % AI_PROMPTS.length);
+      setPhase("question");
+    }, 7000);
+    t(() => setPhase("answer"), 8800);
+    t(() => setPhase("pause"), 11800);
+    t(() => {
+      setPromptIndex((i) => (i + 1) % AI_PROMPTS.length);
+      setPhase("question");
+    }, 12800);
+    t(() => setPhase("answer"), 14600);
+    t(() => setPhase("pause"), 17600);
+    // Restart cycle
+    t(() => {
+      setPromptIndex(0);
+      setPhase("pause");
+    }, 18600);
+
+    return () => timers.forEach(clearTimeout);
+  }, []);
+
+  // Restart loop
+  useEffect(() => {
+    if (phase !== "pause" || promptIndex !== 0) return;
+    const timer = setTimeout(() => setPhase("question"), 1200);
+    return () => clearTimeout(timer);
+  }, [phase, promptIndex]);
+
+  const prompt = AI_PROMPTS[promptIndex];
+
+  return (
+    <div className="relative w-[340px] h-[340px] flex items-center justify-center">
+      {/* Orb center */}
+      <AIOrb size={160} />
+
+      {/* Question bubble — top right */}
+      <AnimatePresence mode="wait">
+        {(phase === "question" || phase === "answer") && (
+          <motion.div
+            key={`q-${promptIndex}`}
+            className="absolute top-2 -right-4"
+            initial={{ opacity: 0, scale: 0.8, x: -10 }}
+            animate={{ opacity: 1, scale: 1, x: 0 }}
+            exit={{ opacity: 0, scale: 0.9, x: 10 }}
+            transition={{ duration: 0.3 }}
+          >
+            <div
+              className="bg-[#F7F7FB] rounded-2xl rounded-br-sm px-3.5 py-2 text-[11px] text-[#1A1A2E] max-w-[180px]"
+              style={{ boxShadow: "0 2px 12px rgba(108,92,231,0.08)" }}
+            >
+              {prompt.question}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Answer bubble — bottom left */}
+      <AnimatePresence mode="wait">
+        {phase === "answer" && (
+          <motion.div
+            key={`a-${promptIndex}`}
+            className="absolute bottom-4 -left-6"
+            initial={{ opacity: 0, scale: 0.8, y: 10 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.9, y: -10 }}
+            transition={{ duration: 0.3 }}
+          >
+            <div
+              className="bg-white rounded-2xl rounded-bl-sm px-3.5 py-2 text-[11px] text-[#1A1A2E] max-w-[190px] border border-[#EEE9FF]"
+              style={{ boxShadow: "0 4px 16px rgba(108,92,231,0.12)" }}
+            >
+              <span className="text-[#6C5CE7] font-medium">AI: </span>
+              {prompt.answer}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Typing indicator */}
+      <AnimatePresence>
+        {phase === "question" && (
+          <motion.div
+            className="absolute bottom-6 -left-2"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            <div
+              className="bg-white rounded-full px-3 py-1.5 flex items-center gap-1 border border-[#EEE9FF]"
+              style={{ boxShadow: "0 2px 8px rgba(108,92,231,0.08)" }}
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-[#6C5CE7] animate-bounce" style={{ animationDelay: "0ms" }} />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#a78bfa] animate-bounce" style={{ animationDelay: "150ms" }} />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#c4b5fd] animate-bounce" style={{ animationDelay: "300ms" }} />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
 
 export default function Hero() {
   return (
@@ -112,14 +235,14 @@ export default function Hero() {
             </motion.div>
           </motion.div>
 
-          {/* Right — AI Orb */}
+          {/* Right — AI Orb with chat bubbles */}
           <motion.div
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.8, delay: 0.6, ease: "easeOut" }}
             className="hidden lg:flex items-center justify-center"
           >
-            <AIOrb />
+            <HeroOrb />
           </motion.div>
         </div>
       </div>
