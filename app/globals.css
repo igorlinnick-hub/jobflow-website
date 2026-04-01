@@ -88,6 +88,11 @@ h1, h2, h3 {
   100% { top: 100%; opacity: 0.3; }
 }
 
+@keyframes scanPulse {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
 @keyframes blob1 {
   0% { transform: translate(0, 0); }
   100% { transform: translate(200px, 150px); }
@@ -108,19 +113,19 @@ h1, h2, h3 {
   100% { border-radius: 40% 60% 30% 70% / 60% 30% 70% 40%; }
 }
 
-@keyframes cloudFloat1 {
-  0% { transform: translateX(0); }
-  100% { transform: translateX(30px); }
+@keyframes cloudDrift1 {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(120vw); }
 }
 
-@keyframes cloudFloat2 {
-  0% { transform: translateX(0); }
-  100% { transform: translateX(-25px); }
+@keyframes cloudDrift2 {
+  0% { transform: translateX(120vw); }
+  100% { transform: translateX(-100%); }
 }
 
-@keyframes cloudFloat3 {
-  0% { opacity: 0.06; }
-  100% { opacity: 0.1; }
+@keyframes cloudDrift3 {
+  0% { transform: translateX(-80%); }
+  100% { transform: translateX(110vw); }
 }
 
 /* ===== HERO GRID BACKGROUND ===== */

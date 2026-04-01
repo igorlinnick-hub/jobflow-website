@@ -3,7 +3,7 @@ import Hero from "@/components/landing/Hero";
 import Ticker from "@/components/landing/Ticker";
 import HowItWorks from "@/components/landing/HowItWorks";
 import Features from "@/components/landing/Features";
-import AIProcess from "@/components/landing/AIProcess";
+import ChromeExtensionDemo from "@/components/landing/ChromeExtensionDemo";
 import StatsCounter from "@/components/landing/StatsCounter";
 import Pricing from "@/components/landing/Pricing";
 import FAQ from "@/components/landing/FAQ";
@@ -19,7 +19,7 @@ export default function Home() {
         <Ticker />
         <HowItWorks />
         <Features />
-        <AIProcess />
+        <ChromeExtensionDemo />
         <StatsCounter />
         <Pricing />
         <FAQ />
