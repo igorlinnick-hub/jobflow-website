@@ -53,7 +53,7 @@ export default function FloatingAIGuide() {
   const [activeIndex, setActiveIndex] = useState(-1);
   const [showBubble, setShowBubble] = useState(false);
   const [dismissed, setDismissed] = useState(false);
-  const bubbleTimer = useRef<ReturnType<typeof setTimeout>>();
+  const bubbleTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
   const prevIndex = useRef(-1);
 
   useEffect(() => {
