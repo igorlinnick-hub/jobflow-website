@@ -2,12 +2,6 @@
 
 import { motion } from "framer-motion";
 
-/*
-  Chaotic fluid blobs inside a circle — inspired by ChatGPT voice mode.
-  Multiple overlapping blobs with independent, irregular motion paths
-  create an organic, non-repeating feel.
-*/
-
 const BLOBS = [
   {
     id: 0,
@@ -71,7 +65,6 @@ const BLOBS = [
   },
 ];
 
-/* Morphing border-radius keyframes for organic edge */
 const MORPH = [
   "60% 40% 55% 45% / 45% 55% 45% 55%",
   "40% 60% 45% 55% / 55% 40% 60% 40%",
@@ -82,10 +75,10 @@ const MORPH = [
   "60% 40% 55% 45% / 45% 55% 45% 55%",
 ];
 
-export default function AIOrb() {
+export default function AIOrb({ size = 320 }: { size?: number }) {
   return (
-    <div className="relative w-[320px] h-[320px] mx-auto">
-      {/* Soft ambient glow */}
+    <div className="relative" style={{ width: size, height: size }}>
+      {/* Ambient glow */}
       <motion.div
         className="absolute rounded-full"
         style={{
@@ -97,30 +90,18 @@ export default function AIOrb() {
         transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
       />
 
-      {/* Main orb container — clipped circle with morphing edge */}
+      {/* Main orb — clipped with morphing edge */}
       <motion.div
         className="absolute inset-0 overflow-hidden"
-        style={{
-          borderRadius: MORPH[0],
-        }}
-        animate={{
-          borderRadius: MORPH,
-        }}
-        transition={{
-          duration: 18,
-          repeat: Infinity,
-          ease: "easeInOut",
-        }}
+        style={{ borderRadius: MORPH[0] }}
+        animate={{ borderRadius: MORPH }}
+        transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
       >
-        {/* Base fill */}
         <div
           className="absolute inset-0"
-          style={{
-            background: "linear-gradient(135deg, #ede9fe 0%, #c4b5fd 30%, #a78bfa 60%, #6C5CE7 100%)",
-          }}
+          style={{ background: "linear-gradient(135deg, #ede9fe 0%, #c4b5fd 30%, #a78bfa 60%, #6C5CE7 100%)" }}
         />
 
-        {/* Chaotic fluid blobs */}
         {BLOBS.map((blob) => (
           <motion.div
             key={blob.id}
@@ -138,24 +119,17 @@ export default function AIOrb() {
               mixBlendMode: "soft-light",
             }}
             animate={blob.animate}
-            transition={{
-              duration: blob.duration,
-              repeat: Infinity,
-              ease: "easeInOut",
-            }}
+            transition={{ duration: blob.duration, repeat: Infinity, ease: "easeInOut" }}
           />
         ))}
 
-        {/* Hot white core that drifts */}
+        {/* Hot white core */}
         <motion.div
           className="absolute"
           style={{
-            width: "45%",
-            height: "45%",
-            top: "50%",
-            left: "50%",
-            marginTop: "-22.5%",
-            marginLeft: "-22.5%",
+            width: "45%", height: "45%",
+            top: "50%", left: "50%",
+            marginTop: "-22.5%", marginLeft: "-22.5%",
             background: "radial-gradient(circle, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.4) 40%, transparent 70%)",
             filter: "blur(15px)",
           }}
@@ -167,14 +141,12 @@ export default function AIOrb() {
           transition={{ duration: 9, repeat: Infinity, ease: "easeInOut" }}
         />
 
-        {/* Secondary white shimmer */}
+        {/* Secondary shimmer */}
         <motion.div
           className="absolute"
           style={{
-            width: "35%",
-            height: "35%",
-            top: "30%",
-            left: "60%",
+            width: "35%", height: "35%",
+            top: "30%", left: "60%",
             background: "radial-gradient(circle, rgba(255,255,255,0.7) 0%, rgba(196,181,253,0.3) 50%, transparent 80%)",
             filter: "blur(18px)",
           }}
@@ -187,16 +159,13 @@ export default function AIOrb() {
           transition={{ duration: 11, repeat: Infinity, ease: "easeInOut" }}
         />
 
-        {/* Deep purple pulse that moves around */}
+        {/* Deep purple drift */}
         <motion.div
           className="absolute"
           style={{
-            width: "60%",
-            height: "60%",
-            top: "50%",
-            left: "50%",
-            marginTop: "-30%",
-            marginLeft: "-30%",
+            width: "60%", height: "60%",
+            top: "50%", left: "50%",
+            marginTop: "-30%", marginLeft: "-30%",
             background: "radial-gradient(circle, rgba(108,92,231,0.6) 0%, rgba(108,92,231,0.2) 50%, transparent 80%)",
             filter: "blur(20px)",
             mixBlendMode: "multiply",
@@ -210,22 +179,15 @@ export default function AIOrb() {
         />
       </motion.div>
 
-      {/* Subtle outer ring glow */}
+      {/* Outer ring */}
       <motion.div
-        className="absolute inset-[-2px] rounded-full pointer-events-none"
+        className="absolute inset-[-2px] pointer-events-none"
         style={{
           border: "1px solid rgba(167,139,250,0.2)",
           boxShadow: "0 0 30px rgba(108,92,231,0.15), inset 0 0 30px rgba(108,92,231,0.05)",
         }}
-        animate={{
-          borderRadius: MORPH,
-          opacity: [0.4, 0.8, 0.5, 0.9, 0.4],
-        }}
-        transition={{
-          duration: 18,
-          repeat: Infinity,
-          ease: "easeInOut",
-        }}
+        animate={{ borderRadius: MORPH, opacity: [0.4, 0.8, 0.5, 0.9, 0.4] }}
+        transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
       />
     </div>
   );

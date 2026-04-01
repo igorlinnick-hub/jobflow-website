@@ -17,6 +17,7 @@ const fadeUp = {
 export default function Hero() {
   return (
     <section
+      id="hero"
       className="relative pt-28 pb-12 px-4 sm:px-6 lg:px-8 overflow-hidden"
       style={{
         backgroundImage:
