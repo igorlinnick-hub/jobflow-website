@@ -94,94 +94,88 @@ export default function AIOrb({ size = 320 }: { size?: number }) {
       <div
         className="absolute inset-0 rounded-full overflow-hidden"
       >
-        {/* Main orb — morphing animation inside the frame */}
+        {/* Base fill — always covers entire circle */}
+        <div
+          className="absolute inset-0"
+          style={{ background: "linear-gradient(135deg, #ede9fe 0%, #c4b5fd 30%, #a78bfa 60%, #6C5CE7 100%)" }}
+        />
+
+        {/* Animated blobs */}
+        {BLOBS.map((blob) => (
+          <motion.div
+            key={blob.id}
+            className="absolute"
+            style={{
+              width: blob.size,
+              height: blob.size,
+              top: "50%",
+              left: "50%",
+              marginTop: `-${parseInt(blob.size) / 2}%`,
+              marginLeft: `-${parseInt(blob.size) / 2}%`,
+              background: blob.gradient,
+              borderRadius: "50%",
+              filter: "blur(25px)",
+              mixBlendMode: "soft-light",
+            }}
+            animate={blob.animate}
+            transition={{ duration: blob.duration, repeat: Infinity, ease: "easeInOut" }}
+          />
+        ))}
+
+        {/* Hot white core */}
         <motion.div
-          className="absolute inset-0 overflow-hidden"
-          style={{ borderRadius: MORPH[0] }}
-          animate={{ borderRadius: MORPH }}
-          transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
-        >
-          <div
-            className="absolute inset-0"
-            style={{ background: "linear-gradient(135deg, #ede9fe 0%, #c4b5fd 30%, #a78bfa 60%, #6C5CE7 100%)" }}
-          />
+          className="absolute"
+          style={{
+            width: "45%", height: "45%",
+            top: "50%", left: "50%",
+            marginTop: "-22.5%", marginLeft: "-22.5%",
+            background: "radial-gradient(circle, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.4) 40%, transparent 70%)",
+            filter: "blur(15px)",
+          }}
+          animate={{
+            x: [0, 25, -30, 15, -20, 35, 0],
+            y: [0, -20, 30, -35, 25, -10, 0],
+            scale: [1, 1.3, 0.8, 1.2, 0.9, 1.15, 1],
+          }}
+          transition={{ duration: 9, repeat: Infinity, ease: "easeInOut" }}
+        />
 
-          {BLOBS.map((blob) => (
-            <motion.div
-              key={blob.id}
-              className="absolute"
-              style={{
-                width: blob.size,
-                height: blob.size,
-                top: "50%",
-                left: "50%",
-                marginTop: `-${parseInt(blob.size) / 2}%`,
-                marginLeft: `-${parseInt(blob.size) / 2}%`,
-                background: blob.gradient,
-                borderRadius: "50%",
-                filter: "blur(25px)",
-                mixBlendMode: "soft-light",
-              }}
-              animate={blob.animate}
-              transition={{ duration: blob.duration, repeat: Infinity, ease: "easeInOut" }}
-            />
-          ))}
+        {/* Secondary shimmer */}
+        <motion.div
+          className="absolute"
+          style={{
+            width: "35%", height: "35%",
+            top: "30%", left: "60%",
+            background: "radial-gradient(circle, rgba(255,255,255,0.7) 0%, rgba(196,181,253,0.3) 50%, transparent 80%)",
+            filter: "blur(18px)",
+          }}
+          animate={{
+            x: [0, -40, 20, -50, 30, -15, 0],
+            y: [0, 30, -25, 40, -35, 20, 0],
+            scale: [0.8, 1.2, 0.9, 1.3, 1, 1.1, 0.8],
+            opacity: [0.6, 1, 0.5, 0.9, 0.7, 1, 0.6],
+          }}
+          transition={{ duration: 11, repeat: Infinity, ease: "easeInOut" }}
+        />
 
-          {/* Hot white core */}
-          <motion.div
-            className="absolute"
-            style={{
-              width: "45%", height: "45%",
-              top: "50%", left: "50%",
-              marginTop: "-22.5%", marginLeft: "-22.5%",
-              background: "radial-gradient(circle, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.4) 40%, transparent 70%)",
-              filter: "blur(15px)",
-            }}
-            animate={{
-              x: [0, 25, -30, 15, -20, 35, 0],
-              y: [0, -20, 30, -35, 25, -10, 0],
-              scale: [1, 1.3, 0.8, 1.2, 0.9, 1.15, 1],
-            }}
-            transition={{ duration: 9, repeat: Infinity, ease: "easeInOut" }}
-          />
-
-          {/* Secondary shimmer */}
-          <motion.div
-            className="absolute"
-            style={{
-              width: "35%", height: "35%",
-              top: "30%", left: "60%",
-              background: "radial-gradient(circle, rgba(255,255,255,0.7) 0%, rgba(196,181,253,0.3) 50%, transparent 80%)",
-              filter: "blur(18px)",
-            }}
-            animate={{
-              x: [0, -40, 20, -50, 30, -15, 0],
-              y: [0, 30, -25, 40, -35, 20, 0],
-              scale: [0.8, 1.2, 0.9, 1.3, 1, 1.1, 0.8],
-              opacity: [0.6, 1, 0.5, 0.9, 0.7, 1, 0.6],
-            }}
-            transition={{ duration: 11, repeat: Infinity, ease: "easeInOut" }}
-          />
-
-          {/* Deep purple drift */}
-          <motion.div
-            className="absolute"
-            style={{
-              width: "60%", height: "60%",
-              top: "50%", left: "50%",
-              marginTop: "-30%", marginLeft: "-30%",
-              background: "radial-gradient(circle, rgba(108,92,231,0.6) 0%, rgba(108,92,231,0.2) 50%, transparent 80%)",
-              filter: "blur(20px)",
-              mixBlendMode: "multiply",
-            }}
-            animate={{
-              x: [0, -35, 45, -20, 40, -45, 0],
-              y: [0, 40, -30, 50, -20, 35, 0],
-              scale: [1, 0.7, 1.3, 0.8, 1.2, 0.9, 1],
-            }}
-            transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
-          />
-        </motion.div>
+        {/* Deep purple drift */}
+        <motion.div
+          className="absolute"
+          style={{
+            width: "60%", height: "60%",
+            top: "50%", left: "50%",
+            marginTop: "-30%", marginLeft: "-30%",
+            background: "radial-gradient(circle, rgba(108,92,231,0.6) 0%, rgba(108,92,231,0.2) 50%, transparent 80%)",
+            filter: "blur(20px)",
+            mixBlendMode: "multiply",
+          }}
+          animate={{
+            x: [0, -35, 45, -20, 40, -45, 0],
+            y: [0, 40, -30, 50, -20, 35, 0],
+            scale: [1, 0.7, 1.3, 0.8, 1.2, 0.9, 1],
+          }}
+          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+        />
       </div>
 
       {/* Static circular ring frame */}
