@@ -178,14 +178,6 @@ export default function AIOrb({ size = 320 }: { size?: number }) {
         />
       </div>
 
-      {/* Static circular ring frame */}
-      <div
-        className="absolute inset-[-2px] rounded-full pointer-events-none"
-        style={{
-          border: "1.5px solid rgba(167,139,250,0.35)",
-          boxShadow: "0 0 30px rgba(108,92,231,0.15), inset 0 0 30px rgba(108,92,231,0.05)",
-        }}
-      />
     </div>
   );
 }
