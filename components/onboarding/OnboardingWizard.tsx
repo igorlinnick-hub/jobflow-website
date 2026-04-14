@@ -122,11 +122,17 @@ export default function OnboardingWizard() {
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-2xl mx-auto px-4 py-12">
-        {/* Logo */}
-        <div className="text-center mb-8">
+        {/* Logo + Sign out */}
+        <div className="flex items-center justify-between mb-8">
           <span className="text-2xl font-bold text-text">
             <span className="text-accent">Job</span>Flow
           </span>
+          <a
+            href="/auth/signout"
+            className="text-sm text-text2 hover:text-accent transition"
+          >
+            Sign out
+          </a>
         </div>
 
         {/* Progress */}
