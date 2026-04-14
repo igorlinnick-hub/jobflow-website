@@ -12,6 +12,8 @@ export default function SignupForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [waitlisted, setWaitlisted] = useState(false);
+  const [confirmationSent, setConfirmationSent] = useState(false);
+  const [confirmationEmail, setConfirmationEmail] = useState("");
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -61,10 +63,11 @@ export default function SignupForm() {
     }
 
     // Sign up directly (invite code optional for now)
-    const { error: authError } = await supabase.auth.signUp({
+    const { data: signUpData, error: authError } = await supabase.auth.signUp({
       email,
       password,
       options: {
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
         data: {
           first_name: firstName,
           last_name: lastName,
@@ -93,8 +96,18 @@ export default function SignupForm() {
       await supabase.rpc("increment_invite_code_uses", { code_value: inviteCode.toUpperCase() });
     }
 
-    router.push("/onboarding");
-    router.refresh();
+    setLoading(false);
+
+    // If session present → email confirmation is off, go to onboarding
+    if (signUpData.session) {
+      router.push("/onboarding");
+      router.refresh();
+      return;
+    }
+
+    // Otherwise show "check your email" screen
+    setConfirmationEmail(email);
+    setConfirmationSent(true);
   }
 
   async function handleGoogleSignup() {
@@ -104,6 +117,26 @@ export default function SignupForm() {
         redirectTo: `${window.location.origin}/auth/callback`,
       },
     });
+  }
+
+  if (confirmationSent) {
+    return (
+      <div className="text-center space-y-4 py-4">
+        <div className="w-14 h-14 mx-auto rounded-full bg-accent/10 flex items-center justify-center">
+          <svg className="w-7 h-7 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+          </svg>
+        </div>
+        <h3 className="text-lg font-semibold text-text">Check your email</h3>
+        <p className="text-sm text-text2">
+          We sent a confirmation link to <span className="text-text font-medium">{confirmationEmail}</span>.
+          Click it to activate your account, then sign in.
+        </p>
+        <p className="text-xs text-text2">
+          Didn&apos;t get it? Check spam, or wait a minute and try again.
+        </p>
+      </div>
+    );
   }
 
   if (waitlisted) {
