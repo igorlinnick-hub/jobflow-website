@@ -60,34 +60,7 @@ export default function SignupForm() {
       }
     }
 
-    if (!inviteCode) {
-      // No invite code — add to waitlist
-      const { error: waitlistError } = await supabase
-        .from("waitlist")
-        .upsert({ email, first_name: firstName, last_name: lastName }, { onConflict: "email" });
-
-      setLoading(false);
-
-      if (waitlistError) {
-        console.error("Waitlist error:", waitlistError);
-        const msg = waitlistError.message?.toLowerCase() || "";
-        if (msg.includes("duplicate") || msg.includes("unique") || waitlistError.code === "23505") {
-          setError("This email is already on the waitlist.");
-        } else {
-          setError(
-            `[${waitlistError.code || "?"}] ${waitlistError.message || "unknown error"}${
-              waitlistError.details ? " — " + waitlistError.details : ""
-            }`
-          );
-        }
-        return;
-      }
-
-      setWaitlisted(true);
-      return;
-    }
-
-    // Sign up with valid invite code
+    // Sign up directly (invite code optional for now)
     const { error: authError } = await supabase.auth.signUp({
       email,
       password,
@@ -95,7 +68,7 @@ export default function SignupForm() {
         data: {
           first_name: firstName,
           last_name: lastName,
-          invite_code: inviteCode.toUpperCase(),
+          ...(inviteCode ? { invite_code: inviteCode.toUpperCase() } : {}),
         },
       },
     });
@@ -116,7 +89,9 @@ export default function SignupForm() {
     }
 
     // Increment invite code usage
-    await supabase.rpc("increment_invite_code_uses", { code_value: inviteCode.toUpperCase() });
+    if (inviteCode) {
+      await supabase.rpc("increment_invite_code_uses", { code_value: inviteCode.toUpperCase() });
+    }
 
     router.push("/onboarding");
     router.refresh();
