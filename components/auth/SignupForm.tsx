@@ -69,7 +69,12 @@ export default function SignupForm() {
       setLoading(false);
 
       if (waitlistError) {
-        setError("Something went wrong. Please try again.");
+        const msg = waitlistError.message?.toLowerCase() || "";
+        if (msg.includes("duplicate") || msg.includes("unique") || waitlistError.code === "23505") {
+          setError("This email is already on the waitlist.");
+        } else {
+          setError(waitlistError.message || "Something went wrong. Please try again.");
+        }
         return;
       }
 
@@ -91,7 +96,16 @@ export default function SignupForm() {
     });
 
     if (authError) {
-      setError(authError.message);
+      const msg = authError.message?.toLowerCase() || "";
+      if (
+        msg.includes("already registered") ||
+        msg.includes("already exists") ||
+        msg.includes("user already")
+      ) {
+        setError("An account with this email already exists. Try signing in instead.");
+      } else {
+        setError(authError.message);
+      }
       setLoading(false);
       return;
     }
@@ -138,14 +152,14 @@ export default function SignupForm() {
         <Input
           label="First name"
           name="first_name"
-          placeholder="Igor"
+          placeholder="John"
           required
           autoComplete="given-name"
         />
         <Input
           label="Last name"
           name="last_name"
-          placeholder="Linnik"
+          placeholder="Doe"
           required
           autoComplete="family-name"
         />
