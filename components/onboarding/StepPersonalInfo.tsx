@@ -29,7 +29,7 @@ export default function StepPersonalInfo({ profile, updateProfile, onNext }: Pro
           name="name"
           value={profile.name}
           onChange={(e) => updateProfile({ name: e.target.value })}
-          placeholder="Igor"
+          placeholder="John"
           required
         />
         <Input
@@ -37,7 +37,7 @@ export default function StepPersonalInfo({ profile, updateProfile, onNext }: Pro
           name="last_name"
           value={profile.last_name}
           onChange={(e) => updateProfile({ last_name: e.target.value })}
-          placeholder="Linnik"
+          placeholder="Doe"
           required
         />
       </div>
