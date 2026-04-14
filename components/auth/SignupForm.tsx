@@ -69,11 +69,16 @@ export default function SignupForm() {
       setLoading(false);
 
       if (waitlistError) {
+        console.error("Waitlist error:", waitlistError);
         const msg = waitlistError.message?.toLowerCase() || "";
         if (msg.includes("duplicate") || msg.includes("unique") || waitlistError.code === "23505") {
           setError("This email is already on the waitlist.");
         } else {
-          setError(waitlistError.message || "Something went wrong. Please try again.");
+          setError(
+            `[${waitlistError.code || "?"}] ${waitlistError.message || "unknown error"}${
+              waitlistError.details ? " — " + waitlistError.details : ""
+            }`
+          );
         }
         return;
       }
