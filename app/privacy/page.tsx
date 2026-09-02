@@ -16,7 +16,7 @@ export default function PrivacyPage() {
           <h1 className="text-3xl font-bold text-gray-900 mb-8">Privacy Policy</h1>
 
           <div className="space-y-6 text-gray-600 text-sm leading-relaxed">
-            <p>Last updated: May 2026</p>
+            <p>Last updated: August 2026</p>
 
             <section>
               <h2 className="text-lg font-semibold text-gray-900 mb-2">1. Information We Collect</h2>
@@ -42,12 +42,12 @@ export default function PrivacyPage() {
 
             <section>
               <h2 className="text-lg font-semibold text-gray-900 mb-2">5. Third-Party Services</h2>
-              <p>We use Supabase (auth + Postgres + Storage), Anthropic Claude (cover letter generation), Google OAuth (optional sign-in), and the job platforms and application systems you apply through (Indeed, ZipRecruiter, and company applicant-tracking systems such as Greenhouse, Lever, Workday, and Ashby). We share with each only the data needed for its function.</p>
+              <p>We use Supabase (auth + Postgres + Storage), Anthropic Claude (cover letter generation), Google OAuth (optional sign-in), Vercel (website hosting and cookieless, aggregate analytics), Resend (transactional email such as password resets), Stripe (payment processing when you purchase a subscription), and the job platforms and application systems you apply through (Indeed, ZipRecruiter, and company applicant-tracking systems such as Greenhouse, Lever, Workday, and Ashby). We share with each only the data needed for its function. We do not use advertising trackers or cross-site advertising pixels.</p>
             </section>
 
             <section>
               <h2 className="text-lg font-semibold text-gray-900 mb-2">6. Your Rights</h2>
-              <p>You can view, update, or delete your personal data at any time through your account settings or by emailing us. Account deletion removes your profile, resume, and stored sessions across all devices and extensions within 30 days.</p>
+              <p>You can view and update your personal data at any time through your account settings. To delete your account and personal data, email support@hiredrop.io from your account email address. We will erase your profile, resume, application history, and stored sessions within 30 days, except where retention is required by law (for example, billing records).</p>
             </section>
 
             <section>
