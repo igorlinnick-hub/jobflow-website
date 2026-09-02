@@ -1,0 +1,12 @@
+# Weekly dependency PRs + security alerts. Next.js here is a custom build
+# (see AGENTS.md) — treat any `next` bump PR with care, don't auto-merge it.
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    ignore:
+      # Custom Next.js version vendored for this repo — upgrades are manual.
+      - dependency-name: "next"
