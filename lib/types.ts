@@ -38,6 +38,10 @@ export interface Platform {
   beta?: boolean; // newly enabled — shown with a "beta" marker on its chip
   connectable?: boolean; // account-based platform — user logs in / registers to connect
   discovery?: boolean; // backend can fetch listings from it ("Find jobs from" chips)
+  // Set when a source is KNOWN dead — the honest reason, shown as a "Paused" line.
+  // An unavailable platform is never selectable: offering a pick that returns nothing
+  // is worse than not offering it. Mirrors JobPlatform.unavailable_reason on the backend.
+  unavailable?: string;
   // Honest automation stage — drives the badge on the connections panel:
   //   "auto"    extension applies end-to-end (pauses only for a captcha)
   //   "semi"    listings feed the board; we fill the employer's ATS form, the

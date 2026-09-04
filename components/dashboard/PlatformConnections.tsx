@@ -21,8 +21,12 @@ const CONNECTABLE = PLATFORMS.filter((p) => p.connectable);
 // Auto-apply platforms that need NO account (Greenhouse today) — full-auto and
 // ready to run out of the box. They earn a real card, not a footnote.
 const READY_AUTO = PLATFORMS.filter((p) => !p.connectable && p.autoApply);
-// Everything else with no account = discovery-only public boards (Google, RemoteOK).
-const PUBLIC = PLATFORMS.filter((p) => !p.connectable && !p.autoApply);
+// Everything else with no account = discovery-only public boards (RemoteOK today).
+const PUBLIC = PLATFORMS.filter((p) => !p.connectable && !p.autoApply && !p.unavailable);
+// Sources we've had to switch off. Named with the reason rather than quietly dropped:
+// the user deserves to know why a board they've heard of isn't in the list (Google Jobs
+// — see jobflow/docs/handoff/google-jobs.md).
+const PAUSED = PLATFORMS.filter((p) => p.unavailable);
 
 // Brand accent per platform for the monogram chip — keeps every row visually
 // identical in structure while still instantly recognizable. Hex ≈ brand color.
@@ -281,6 +285,11 @@ export default function PlatformConnections() {
               No account needed: {PUBLIC.map((p) => p.name).join(", ")} — public listings you apply to directly.
             </p>
           )}
+          {PAUSED.map((p) => (
+            <p key={p.id} className="px-4 py-2.5 text-[11px] text-text2/50 border-t border-border bg-surface2/20">
+              <span className="font-medium text-text2/70">{p.name} — paused.</span> {p.unavailable}
+            </p>
+          ))}
         </div>
       )}
     </div>

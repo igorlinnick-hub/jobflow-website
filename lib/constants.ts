@@ -40,7 +40,16 @@ export const PLATFORMS: Platform[] = [
   // Wellfound (startup niche, scraper dead/SPA → parking lot). Their apply routes through ATS
   // we already handle; keeping them as dead "coming soon" rows just misled users.
   // Public — no account needed to browse/apply.
-  { id: "google", name: "Google Jobs", status: "active", requiresLogin: false, discovery: true, description: "Aggregates listings from across the web." },
+  // Google Jobs — PAUSED 2026-09-03, and it was never an apply target: Google for Jobs is a
+  // shop window inside Search, every card links out to the source (LinkedIn/Indeed/GH/Lever/
+  // Workday/company site). On top of that Google now answers job searches only to a real
+  // browser (server gets an "enablejs" interstitial), so our backend fetches literally zero.
+  // It stayed listed as "active" for months and quietly returned nothing — the same silent-zero
+  // failure as the jobspy package mix-up. Full verdict + reopen gate:
+  // jobflow/docs/handoff/google-jobs.md (probe: scripts/probe_google_jobs.py).
+  { id: "google", name: "Google Jobs", status: "active", requiresLogin: false, discovery: true,
+    unavailable: "Google now shows job results only to a real browser, so we can't search it for you.",
+    description: "Aggregates listings from across the web." },
   { id: "remoteok", name: "RemoteOK", status: "active", requiresLogin: false, discovery: true, description: "Remote-only jobs via public API." },
 ];
 
