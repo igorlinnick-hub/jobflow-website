@@ -33,11 +33,6 @@ const PAUSED = PLATFORMS.filter((p) => p.unavailable);
 const BRAND: Record<string, string> = {
   indeed: "#2557a7",
   ziprecruiter: "#1d8649",
-  glassdoor: "#0caa41",
-  wellfound: "#111111",
-  monster: "#6e46ae",
-  careerbuilder: "#0c6dbb",
-  dice: "#eb1c26",
   greenhouse: "#1f7a54",
   lever: "#5522e8",
   ashby: "#4b4ef0",
