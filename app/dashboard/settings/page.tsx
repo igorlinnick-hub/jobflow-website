@@ -355,7 +355,7 @@ export default function SettingsPage() {
               <span className="text-xs font-semibold text-green uppercase tracking-wide">Auto-apply</span>
               <span className="text-xs text-text2">Extension fills & submits the form</span>
             </div>
-            {PLATFORMS.filter((p) => p.autoApply).map((platform) => {
+            {PLATFORMS.filter((p) => p.autoApply && !p.unavailable).map((platform) => {
               const isSelected = profile.platforms.includes(platform.id);
               return (
                 <button type="button" key={platform.id} onClick={() => togglePlatform(platform.id)}
@@ -377,7 +377,10 @@ export default function SettingsPage() {
               <span className="text-xs text-text2">We find jobs, you apply via the listing</span>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {PLATFORMS.filter((p) => !p.autoApply).map((platform) => {
+              {/* `!p.unavailable`: a source we can't fetch is not offered as a choice —
+                  picking it would just save a preference that returns nothing. Paused
+                  sources are named on /dashboard/platforms with the reason. */}
+              {PLATFORMS.filter((p) => !p.autoApply && !p.unavailable).map((platform) => {
                 const isSelected = profile.platforms.includes(platform.id);
                 return (
                   <button type="button" key={platform.id} onClick={() => togglePlatform(platform.id)}
