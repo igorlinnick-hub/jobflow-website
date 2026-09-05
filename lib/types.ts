@@ -17,6 +17,11 @@ export interface UserProfile {
   city?: string;
   state?: string;
   postal_code?: string;
+  // Current employment — "current company / employer / job title" is the single
+  // biggest hand-back cause on ATS forms (12 of 21 required blanks on the 320-form
+  // measure). Filled from here; blank means the filler hands the job back.
+  current_employer?: string;
+  current_title?: string;
   // Screener-answer fields the extension's deterministic handlers use to fill the
   // most frequent required application questions (work auth / sponsorship / notice /
   // English) — honestly, from the user, never guessed on a knockout.

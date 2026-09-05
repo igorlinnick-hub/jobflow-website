@@ -28,6 +28,8 @@ const emptyProfile: UserProfile = {
   city: "",
   state: "",
   postal_code: "",
+  current_employer: "",
+  current_title: "",
   work_authorized_us: null,
   needs_sponsorship: null,
   notice_period: "",
@@ -87,6 +89,8 @@ export default function SettingsPage() {
           city: data.city || "",
           state: data.state || "",
           postal_code: data.postal_code || "",
+          current_employer: data.current_employer || "",
+          current_title: data.current_title || "",
           work_authorized_us: data.work_authorized_us ?? null,
           needs_sponsorship: data.needs_sponsorship ?? null,
           notice_period: data.notice_period || "",
@@ -151,6 +155,8 @@ export default function SettingsPage() {
         city: profile.city,
         state: profile.state,
         postal_code: profile.postal_code,
+        current_employer: profile.current_employer,
+        current_title: profile.current_title,
         work_authorized_us: profile.work_authorized_us,
         needs_sponsorship: profile.needs_sponsorship,
         notice_period: profile.notice_period,
@@ -234,6 +240,20 @@ export default function SettingsPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Input label="LinkedIn URL" type="url" value={profile.linkedin_url} onChange={(e) => update({ linkedin_url: e.target.value })} hint="Used to fill LinkedIn fields on company application forms." />
             <Input label="Portfolio / website URL" type="url" value={profile.portfolio_url} onChange={(e) => update({ portfolio_url: e.target.value })} hint="Used for portfolio/website fields." />
+          </div>
+
+          {/* Current employment. "Current company / employer / job title" is the single
+              biggest hand-back cause on application forms — 12 of the 21 required
+              questions we'd otherwise leave blank on the 320-form measure. Filled
+              honestly from here; blank means the job is handed back, never invented. */}
+          <p className="text-sm font-medium text-text pt-2">Current employment</p>
+          <p className="text-xs text-text-muted -mt-2">
+            Many forms require your current (or most recent) employer and job title.
+            Used only to fill those fields.
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <Input label="Current / most recent employer" value={profile.current_employer} onChange={(e) => update({ current_employer: e.target.value })} placeholder="e.g. Acme Corp" />
+            <Input label="Current / most recent job title" value={profile.current_title} onChange={(e) => update({ current_title: e.target.value })} placeholder="e.g. Software Engineer" />
           </div>
 
           {/* Mailing address. ZipRecruiter's contact step labels these Optional and then
