@@ -30,7 +30,7 @@ const PLANS = [
 
 export default function Pricing() {
   return (
-    <section id="pricing" className="py-20 px-4 sm:px-6 lg:px-8 bg-[#F7F7FB]">
+    <section id="pricing" className="py-20 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
         <ScrollReveal className="text-center mb-12">
           <h2 className="text-3xl sm:text-4xl font-bold text-[#1A1A2E] pb-1" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>

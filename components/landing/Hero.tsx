@@ -20,11 +20,6 @@ export default function Hero() {
     <section
       id="hero"
       className="relative pt-28 pb-12 px-4 sm:px-6 lg:px-8 overflow-hidden"
-      style={{
-        backgroundImage:
-          "linear-gradient(rgba(108,92,231,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(108,92,231,0.03) 1px, transparent 1px)",
-        backgroundSize: "40px 40px",
-      }}
     >
       {/* soft depth + signature marks */}
       <div className="glow-purple" style={{ width: 520, height: 520, top: -160, right: -60 }} />

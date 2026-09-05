@@ -147,8 +147,8 @@ h1, h2, h3 {
   100% { transform: translateX(110vw); }
 }
 
-/* ===== HERO GRID BACKGROUND ===== */
-.hero {
+/* ===== SITE-WIDE SUBTLE GRID (light sections show it through transparent bgs) ===== */
+.landing-grid {
   background-image:
     linear-gradient(rgba(108,92,231,0.03) 1px, transparent 1px),
     linear-gradient(90deg, rgba(108,92,231,0.03) 1px, transparent 1px);

@@ -118,7 +118,7 @@ export default function SpeedEdge() {
   const [ref, inView] = useOnView<HTMLDivElement>();
 
   return (
-    <section id="speed" className="relative py-24 px-4 sm:px-6 lg:px-8 bg-[#F7F7FB] overflow-hidden">
+    <section id="speed" className="relative py-24 px-4 sm:px-6 lg:px-8 overflow-hidden">
       {/* soft brand glow, kept subtle */}
       <div className="glow-purple pointer-events-none" style={{ width: 520, height: 520, top: "-10%", right: "-6%", opacity: 0.28 }} />
 
