@@ -48,7 +48,7 @@ export default function ProblemStats() {
   const [active, setActive] = useState(false);
 
   // Scroll-driven day → night. A light "day" wash covers the section as it
-  // enters (blending with the light logo strip above) and *melts* away as you
+  // enters (blending with the light SceneStrip above) and *melts* away as you
   // scroll in, revealing the night. The heading re-colours in sync so it stays
   // readable through the whole transition — same technique as HowItWorks.
   const { scrollYProgress } = useScroll({
