@@ -30,6 +30,11 @@ export default function Hero() {
       <div className="glow-purple" style={{ width: 520, height: 520, top: -160, right: -60 }} />
       <div className="glow-purple" style={{ width: 340, height: 340, bottom: -140, left: -80 }} />
       <DecorMarks />
+      {/* melt the grid pattern + glows into the #F7F7FB strip below — no hard seam */}
+      <div
+        className="absolute inset-x-0 bottom-0 h-40 pointer-events-none"
+        style={{ background: "linear-gradient(180deg, rgba(247,247,251,0) 0%, #F7F7FB 100%)" }}
+      />
 
       <div className="relative z-10 max-w-7xl mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
