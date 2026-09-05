@@ -1,6 +1,6 @@
 import Header from "@/components/landing/Header";
 import Hero from "@/components/landing/Hero";
-import Ticker from "@/components/landing/Ticker";
+import PlatformLogos from "@/components/landing/PlatformLogos";
 import ProblemStats from "@/components/landing/ProblemStats";
 import HowItWorks from "@/components/landing/HowItWorks";
 import Features from "@/components/landing/Features";
@@ -19,7 +19,7 @@ export default function Home() {
       <Header />
       <main className="flex-1">
         <Hero />
-        <Ticker />
+        <PlatformLogos />
         <ProblemStats />
         <HowItWorks />
         <Features />
