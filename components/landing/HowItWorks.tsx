@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { easeInOut, motion, useScroll, useSpring, useTransform } from "framer-motion";
 import Starfield from "./Starfield";
 
 const STEPS = [
@@ -210,11 +210,14 @@ export default function HowItWorks() {
   // Continuous day → night driven by scroll through the whole 400vh section (not
   // the discrete step index) — so the sky *melts* smoothly instead of switching.
   const { scrollYProgress } = useScroll({ target: sectionRef, offset: ["start start", "end end"] });
-  const nightOpacity = useTransform(scrollYProgress, [0.22, 0.9], [0, 1]);
-  const starOpacity = useTransform(scrollYProgress, [0.42, 0.78], [0, 1]);
-  const titleColor = useTransform(scrollYProgress, [0.52, 0.66], ["#1A1A2E", "#ffffff"]);
-  const descColor = useTransform(scrollYProgress, [0.52, 0.66], ["#6B6B8A", "#cbc8db"]);
-  const numColor = useTransform(scrollYProgress, [0.52, 0.66], ["rgba(108,92,231,0.12)", "rgba(255,255,255,0.14)"]);
+  // Mouse wheels scroll in discrete jumps — feed the raw progress through a spring
+  // so the day→night wash glides between scroll positions instead of stepping.
+  const progress = useSpring(scrollYProgress, { stiffness: 85, damping: 26, mass: 0.6, restDelta: 0.0005 });
+  const nightOpacity = useTransform(progress, [0.18, 0.9], [0, 1], { ease: easeInOut });
+  const starOpacity = useTransform(progress, [0.4, 0.8], [0, 1], { ease: easeInOut });
+  const titleColor = useTransform(progress, [0.44, 0.7], ["#1A1A2E", "#ffffff"], { ease: easeInOut });
+  const descColor = useTransform(progress, [0.44, 0.7], ["#6B6B8A", "#cbc8db"], { ease: easeInOut });
+  const numColor = useTransform(progress, [0.44, 0.7], ["rgba(108,92,231,0.12)", "rgba(255,255,255,0.14)"], { ease: easeInOut });
 
   return (
     <section id="how-it-works" ref={sectionRef} className="relative lg:h-[400vh]">
