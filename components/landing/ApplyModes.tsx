@@ -22,7 +22,7 @@ const MODES = [
 
 export default function ApplyModes() {
   return (
-    <section id="modes" className="relative overflow-hidden py-20 px-4 sm:px-6 lg:px-8 bg-white">
+    <section id="modes" className="relative overflow-hidden py-20 px-4 sm:px-6 lg:px-8">
       <div className="glow-purple" style={{ width: 460, height: 460, top: -140, left: "50%", transform: "translateX(-50%)" }} />
       <DecorMarks />
       <div className="relative z-10 max-w-5xl mx-auto">

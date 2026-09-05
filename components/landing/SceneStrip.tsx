@@ -9,7 +9,7 @@ const PILLARS: { name: SceneName; title: string; body: string }[] = [
 
 export default function SceneStrip() {
   return (
-    <section className="py-20 px-4 sm:px-6 lg:px-8 bg-[#F7F7FB]">
+    <section className="py-20 px-4 sm:px-6 lg:px-8">
       <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
         {PILLARS.map((p, i) => (
           <ScrollReveal key={p.name} delay={i * 0.12}>

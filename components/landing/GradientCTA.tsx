@@ -8,7 +8,7 @@ export default function GradientCTA() {
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-[#0f0f17]">
       {/* descend into night — long soft fade from the light section above */}
-      <div className="absolute top-0 inset-x-0 h-60 z-[1] pointer-events-none" style={{ background: "linear-gradient(180deg, #ffffff 0%, rgba(255,255,255,0.5) 28%, rgba(30,26,45,0.2) 64%, rgba(15,15,23,0) 100%)" }} />
+      <div className="absolute top-0 inset-x-0 h-60 z-[1] pointer-events-none" style={{ background: "linear-gradient(180deg, #F7F7FB 0%, rgba(247,247,251,0.5) 28%, rgba(30,26,45,0.2) 64%, rgba(15,15,23,0) 100%)" }} />
       {/* Animated gradient blobs */}
       <div
         className="absolute w-[600px] h-[600px] rounded-full opacity-40"
