@@ -476,6 +476,20 @@ export default function TapView({ token: initialToken }: { token: string }) {
             {busy === "stop" ? "Stopping…" : "Stop"}
           </button>
         )}
+        {/* Start used to live ONLY in the empty-deck state — with cards on screen a
+            user who approved a stack had NO control that applies them (live run
+            2026-09-06: had to fire the postMessage by hand). Same
+            ensureReadyThenStart as the empty state. */}
+        {!running && !remote && hasSession && (
+          <button onClick={ensureReadyThenStart} disabled={busy !== null}
+            className="ml-auto flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition
+              bg-accent text-white hover:bg-accent2 disabled:opacity-50 shadow-sm">
+            <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
+            </svg>
+            {busy === "start" ? "Starting…" : "Apply approved"}
+          </button>
+        )}
       </div>
 
       {/* No ping.js bridge means no extension in THIS browser — that is what `remote` is.
