@@ -15,6 +15,7 @@ import PlatformsIndicator from "@/components/dashboard/PlatformsIndicator";
 import SetupChecklist from "@/components/dashboard/SetupChecklist";
 import MobileHandoff from "@/components/dashboard/MobileHandoff";
 import FreeTastePaywall from "@/components/dashboard/FreeTastePaywall";
+import UsageBanner from "@/components/dashboard/UsageBanner";
 
 export const metadata = {
   title: "Dashboard — HireDrop",
@@ -76,6 +77,23 @@ export default async function DashboardPage() {
         <FreeTastePaywall
           freeUsed={statsData.free_used ?? statsData.free_limit ?? 0}
           freeLimit={statsData.free_limit ?? 0}
+        />
+      )}
+
+      {/* Usage + free-taste countdown, previously only mounted on /preview/free-taste —
+          a free user got no warning before the paywall (jay hit 31/40 with zero signal).
+          Hidden while the paywall itself leads the page: one message per moment. */}
+      {statsData && !freeTasteExhausted && (
+        <UsageBanner
+          tier={statsData.tier}
+          tierLabel={statsData.tier.charAt(0).toUpperCase() + statsData.tier.slice(1)}
+          usedToday={statsData.applications_today}
+          dailyLimit={statsData.daily_limit}
+          remainingToday={statsData.remaining_today}
+          platformCounts={statsData.platform_counts ?? {}}
+          maxPerPlatform={statsData.max_per_platform}
+          freeUsed={statsData.free_used}
+          freeLimit={statsData.free_limit}
         />
       )}
 
