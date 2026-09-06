@@ -92,8 +92,12 @@ export default function HistoryView({ applications }: { applications: Applicatio
     return (a: Application) => map.get(`${(a.title || "").toLowerCase()}|${(a.company || "").toLowerCase()}`);
   }, [receipts]);
 
+  // Stable "now" for the mount: Date.now() inside useMemo violates react-hooks/purity
+  // (the memo must be a pure function of its deps). One timestamp per view is exactly
+  // right for a "this week" counter anyway.
+  const [now] = useState(() => Date.now());
+
   const metrics = useMemo(() => {
-    const now = Date.now();
     const week = applications.filter((a) => now - new Date(a.date_applied).getTime() < 7 * 86400000).length;
     const responses = applications.filter((a) => RESPONSE_STATUSES.has(a.status)).length;
     return {
@@ -102,7 +106,7 @@ export default function HistoryView({ applications }: { applications: Applicatio
       responses,
       rate: applications.length ? Math.round((responses / applications.length) * 100) : 0,
     };
-  }, [applications]);
+  }, [applications, now]);
 
   const byDay = useMemo(() => {
     const groups = new Map<string, Application[]>();
