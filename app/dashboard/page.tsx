@@ -16,6 +16,7 @@ import SetupChecklist from "@/components/dashboard/SetupChecklist";
 import MobileHandoff from "@/components/dashboard/MobileHandoff";
 import FreeTastePaywall from "@/components/dashboard/FreeTastePaywall";
 import UsageBanner from "@/components/dashboard/UsageBanner";
+import CheckoutSuccessBanner from "@/components/dashboard/CheckoutSuccessBanner";
 
 export const metadata = {
   title: "Dashboard — HireDrop",
@@ -73,6 +74,9 @@ export default async function DashboardPage() {
 
   return (
     <DashboardLayout>
+      {/* Post-payment confirmation — the redirect target used to say nothing. */}
+      <CheckoutSuccessBanner tier={statsData?.tier ?? "free"} />
+
       {freeTasteExhausted && statsData && (
         <FreeTastePaywall
           freeUsed={statsData.free_used ?? statsData.free_limit ?? 0}
