@@ -478,6 +478,28 @@ export default function TapView({ token: initialToken }: { token: string }) {
         )}
       </div>
 
+      {/* No ping.js bridge means no extension in THIS browser — that is what `remote` is.
+          The "Your phone is the remote" screen below only covers the EMPTY state, so with a
+          deck already in hand you used to swipe against a card promising a submit that
+          nothing here performs. Same inference, same message: gated on `remote` alone. */}
+      {remote && hasSession && (
+        <div className="max-w-xl mx-auto mb-4 flex items-start gap-3 rounded-xl border border-border
+          bg-surface2/40 p-3.5">
+          <span className="shrink-0 mt-px w-6 h-6 rounded-full bg-yellow/15 text-yellow
+            flex items-center justify-center">
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2.5"
+              strokeLinecap="round" viewBox="0 0 24 24">
+              <path d="M12 8v5m0 3.5v.5" />
+            </svg>
+          </span>
+          <p className="flex-1 text-[13px] text-text leading-snug">
+            This device is a remote — nothing submits from here. Your approvals are saved:
+            start a Tap session in <strong className="font-semibold">Chrome</strong> on your
+            computer and it applies to everything you picked.
+          </p>
+        </div>
+      )}
+
       <div className="max-w-xl mx-auto">
         {card ? (
           /* ── Instant swipe card — brand glass: violet well, starfall, flip-in from the back ── */
@@ -596,7 +618,9 @@ export default function TapView({ token: initialToken }: { token: string }) {
                     )}
 
                     <p className="text-[11px] mt-3" style={{ color: "var(--hdc-hint)" }}>
-                      Approve → we write your cover letter and submit in the background. Nothing sends until you approve.
+                      {remote
+                        ? "Approve → saved for your computer to submit. Nothing sends from this device."
+                        : "Approve → we write your cover letter and submit in the background. Nothing sends until you approve."}
                     </p>
 
                     {/* brand hairline: violet → mint, micro wordmark (approved F3 bottom element) */}
