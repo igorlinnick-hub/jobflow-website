@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+
 import { apiGet } from "@/lib/api";
 
 // One server-side start precondition (GET /campaign/readiness). `fix` is a machine id
@@ -47,6 +49,30 @@ export function checkExtensionPresent(timeoutMs = 1500): Promise<boolean> {
   });
 }
 
+// Which browser is this? The extension is Chrome MV3, so only a desktop Chromium browser
+// can host it. Safari/Firefox users aren't missing an install — they are in a browser that
+// can never run it, and iOS Chrome (CriOS) is WebKit underneath, so it can't either despite
+// the name. Order matters: Chrome's own UA string also contains "Safari/".
+export type BrowserKind = "chromium" | "safari" | "firefox" | "mobile" | "other";
+
+export function detectBrowser(): BrowserKind {
+  if (typeof navigator === "undefined") return "chromium"; // SSR — the PING is the real test
+  const ua = navigator.userAgent;
+  if (/iPhone|iPad|iPod|Android/i.test(ua)) return "mobile";
+  if (/Firefox\/|FxiOS\//.test(ua)) return "firefox";
+  if (/Edg\/|Chrome\/|Chromium\//.test(ua)) return "chromium";
+  if (/Safari\//.test(ua)) return "safari";
+  return "other";
+}
+
+const BROWSER_LABEL: Record<BrowserKind, string> = {
+  chromium: "Chrome",
+  safari: "Safari",
+  firefox: "Firefox",
+  mobile: "a mobile browser",
+  other: "an unsupported browser",
+};
+
 // Full gate: server checks + the local extension check, merged into one list.
 // Fail-open on a server hiccup (empty ready result) — the extension's own start
 // guards are the backstop; a flaky network must not brick the Start button.
@@ -58,13 +84,26 @@ export async function gateStart(token: string): Promise<Readiness> {
     /* fail-open */
   }
   const extPresent = await checkExtensionPresent();
+  const browser = detectBrowser();
+  // Two different failures used to wear one label. "Not installed yet" (Chromium — fixable
+  // right here) is not the same as "this browser can never run it": sending a Safari user
+  // to the install page is a dead end, because there is nothing there for them to install.
+  const wrongBrowser = !extPresent && browser !== "chromium";
   const checks: ReadinessCheck[] = [
     ...server.checks,
     {
       id: "extension",
       ok: extPresent,
-      reason: extPresent ? null : "Install the HireDrop extension — it does the actual applying",
-      fix: extPresent ? null : "extension",
+      reason: extPresent
+        ? null
+        : browser === "mobile"
+          ? "HireDrop applies from Chrome on your computer — a phone can't run the extension."
+          : wrongBrowser
+            ? `HireDrop applies from Chrome — you're in ${BROWSER_LABEL[browser]}. Copy this page's link and open it there.`
+            : "Install the HireDrop extension — it does the actual applying",
+      // No button on a phone: there is no useful action to offer, and a link to copy is
+      // not one. Better a plain honest row than a button that leads nowhere.
+      fix: extPresent || browser === "mobile" ? null : wrongBrowser ? "chrome" : "extension",
     },
   ];
   return { ready: server.ready && extPresent, checks };
@@ -78,6 +117,7 @@ const FIX_LABELS: Record<string, string> = {
   onboarding: "Finish setup",
   campaign: "View campaign",
   extension: "Get the extension",
+  chrome: "Copy link",
 };
 
 // "Almost there" checklist — shown INSTEAD of starting when something is missing.
@@ -94,6 +134,11 @@ export default function StartReadinessModal({
   checks: ReadinessCheck[];
   onFix: (fix: string) => void;
 }) {
+  // "Copy link for Chrome" is handled here rather than in each parent's fixReadiness: it is
+  // a self-contained UI action (clipboard + its own feedback), not a route change. A page
+  // cannot launch Chrome itself — macOS Chrome registers no URL scheme — so we hand over
+  // the link instead of promising an open we can't perform.
+  const [copied, setCopied] = useState(false);
   if (!open) return null;
   const failed = checks.filter((c) => !c.ok);
 
@@ -132,11 +177,22 @@ export default function StartReadinessModal({
               <span className="flex-1 text-[13px] text-text leading-snug">{c.reason}</span>
               {c.fix && (
                 <button
-                  onClick={() => onFix(c.fix!)}
+                  onClick={() => {
+                    if (c.fix !== "chrome") return onFix(c.fix!);
+                    navigator.clipboard.writeText(window.location.href).then(
+                      () => {
+                        setCopied(true);
+                        setTimeout(() => setCopied(false), 4000);
+                      },
+                      () => {
+                        /* clipboard denied — the row still names the browser to open */
+                      },
+                    );
+                  }}
                   className="shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold bg-accent text-white
                     hover:bg-accent2 transition"
                 >
-                  {FIX_LABELS[c.fix] || "Fix"}
+                  {c.fix === "chrome" && copied ? "Copied" : FIX_LABELS[c.fix] || "Fix"}
                 </button>
               )}
             </div>
