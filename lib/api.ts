@@ -70,6 +70,53 @@ export function openBillingPortal(token: string): Promise<BillingUrlResponse> {
   return apiPost<BillingUrlResponse>("/billing/portal", token, {});
 }
 
+// ── Interview kit ────────────────────────────────────────────────────────────
+
+export interface InterviewQuestion {
+  q: string;
+  why: string;
+  bullets: string[];
+  proof: string;
+}
+
+export interface InterviewKit {
+  company_brief: { one_liner: string; facts: string[] };
+  your_angle: string;
+  tell_me_about_yourself: string[];
+  questions: InterviewQuestion[];
+  gaps: { gap: string; say: string }[];
+  ask_them: string[];
+}
+
+/** `ready` splits the union: with a kit, or with the reason there isn't one yet. */
+export interface InterviewKitResponse {
+  ready: boolean;
+  kit?: InterviewKit;
+  generated_at?: string | null;
+  schema_version?: number;
+  can_generate?: boolean;
+  reason?: string;
+  title?: string;
+  company?: string;
+  link?: string;
+}
+
+/** Read the cached kit. Never generates — safe to call on page load. */
+export function getInterviewKit(
+  applicationId: string,
+  token: string
+): Promise<InterviewKitResponse> {
+  return apiGet<InterviewKitResponse>(`/applications/${applicationId}/interview-kit`, token);
+}
+
+/** Generate the kit (costs one AI call, cached server-side afterwards). */
+export function createInterviewKit(
+  applicationId: string,
+  token: string
+): Promise<InterviewKitResponse> {
+  return apiPost<InterviewKitResponse>(`/applications/${applicationId}/interview-kit`, token, {});
+}
+
 // ── Typed response shapes ────────────────────────────────────────────────────
 
 export interface StatsResponse {

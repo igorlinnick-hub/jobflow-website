@@ -19,6 +19,7 @@
  */
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import type { Application } from "@/lib/types";
 import { PLATFORMS, JOB_STATUSES } from "@/lib/constants";
 
@@ -39,6 +40,7 @@ const REASON_MAP: [RegExp, string][] = [
 const userReason = (raw: string) => REASON_MAP.find(([re]) => re.test(raw))?.[1] ?? "we couldn't finish this one automatically";
 
 const RESPONSE_STATUSES = new Set(["interview", "interview_invite", "rejected", "received", "hired"]);
+const INTERVIEW_STATUSES = new Set(["interview", "interview_invite"]);
 const platformName = (id: string) => PLATFORMS.find((p) => p.id === id)?.name ?? id;
 const statusLabel = (s: string) => JOB_STATUSES.find((x) => x.value === s)?.label ?? s;
 const dayKey = (iso: string) => (iso || "").slice(0, 10);
@@ -184,6 +186,16 @@ export default function HistoryView({ applications }: { applications: Applicatio
                       RESPONSE_STATUSES.has(a.status) ? "border-accent/40 text-accent" : "border-border text-text2"].join(" ")}>
                       {statusLabel(a.status)}
                     </span>
+                    {/* An interview is the one row where the next move isn't reading the
+                        record — it's getting ready. Put that first, and loudly. */}
+                    {INTERVIEW_STATUSES.has(a.status) && (
+                      <Link
+                        href={`/dashboard/interview/${a.id}`}
+                        className="shrink-0 rounded-full bg-accent px-2.5 py-1 text-[11px] font-semibold text-white transition hover:bg-accent-hover"
+                      >
+                        Prep for this
+                      </Link>
+                    )}
                     {a.resume_pdf_url && (
                       <a href={a.resume_pdf_url} target="_blank" rel="noopener noreferrer" className="text-[11px] text-accent hover:underline shrink-0">résumé sent ↗</a>
                     )}
