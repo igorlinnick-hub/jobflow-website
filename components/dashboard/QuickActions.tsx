@@ -381,8 +381,10 @@ export default function QuickActions({
 
       // Ask the extension to launch, and WAIT for its verdict: it can refuse (e.g.
       // pre-flight found the target platform logged out). Ignoring that left a
-      // zombie state — backend "running", extension idle. Timeout = extension
-      // absent or an old ping.js that doesn't answer: proceed as before.
+      // zombie state — backend "running", extension idle. Silence is a verdict
+      // too: 5s without an answer = extension absent/orphaned ping.js, and the
+      // backend already got /campaign/start — proceeding would be the same
+      // zombie (#98 class: absence is not consent). Fail CLOSED: roll back.
       const verdict = await new Promise<{ ok: boolean; message?: string } | null>((resolve) => {
         let done = false;
         const finish = (v: { ok: boolean; message?: string } | null) => {
@@ -405,10 +407,14 @@ export default function QuickActions({
         setTimeout(() => finish(null), 5000);
       });
 
-      if (verdict && !verdict.ok) {
+      if (!verdict || !verdict.ok) {
         // Roll the backend back so status doesn't show a campaign nothing is running.
         await apiPost("/campaign/stop", t, {}).catch(() => {});
-        setErr(verdict.message || "The extension couldn't start the campaign.");
+        setErr(
+          verdict
+            ? verdict.message || "The extension couldn't start the campaign."
+            : "The extension didn't respond — reload this tab (the bridge dies with an extension reload), check the HireDrop extension is on, and press Start again."
+        );
         setBusy(null);
         return;
       }
