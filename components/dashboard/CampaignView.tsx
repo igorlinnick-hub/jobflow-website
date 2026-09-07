@@ -133,6 +133,21 @@ export default function CampaignView({ token: initialToken }: Props) {
   // tap run and looked like it "switched to auto" after a few applies (Igor 2026-07-30).
   const [submitMode, setSubmitMode] = useState<"auto" | "tap">("auto");
   const [reviewPending, setReviewPending] = useState<ReviewPending | null>(null);
+  // ── Connection watch ───────────────────────────────────────────────────────
+  // Closing the laptop / reloading the extension kills the automation, but this
+  // page kept claiming "Campaign Live" forever: the server check runs once, on
+  // load (page.tsx redirects when not running), and the ping.js poll below only
+  // ever read captcha state — nobody noticed the answers STOPPING (Igor, 09-06).
+  // Two independent signals, because either alone lies:
+  //  · bridge silence — instant, but absent on a phone/Safari where the campaign
+  //    is legitimately running on another machine. Only trusted once this tab has
+  //    actually seen a reply, so a device that never had the bridge stays quiet.
+  //  · server `running` — the truth (heartbeat-gated, HEARTBEAT_TTL_SECS=600),
+  //    but up to 10 min behind reality.
+  const bridgeSeenRef = useRef(false);
+  const bridgeAtRef = useRef(0);
+  const [bridgeLost, setBridgeLost] = useState(false);
+  const [serverStopped, setServerStopped] = useState(false);
   const lastScreenshotTs = useRef<number>(0);
   const activityEndRef = useRef<HTMLDivElement>(null);
   // The raw log is diagnostics, not the show — the hero counter is. Tucked
@@ -298,6 +313,10 @@ export default function CampaignView({ token: initialToken }: Props) {
     function onMsg(e: MessageEvent) {
       if (e.source !== window || !e.data || typeof e.data !== "object") return;
       if (e.data.type === "HIREDROP_LIVE_STATE" && e.data.ok) {
+        // Proof the extension is alive in THIS browser — see the connection watch.
+        bridgeSeenRef.current = true;
+        bridgeAtRef.current = Date.now();
+        setBridgeLost(false);
         const cw = e.data.captchaWaiting as CaptchaWaiting | null;
         // Stale-guard: the extension self-stops after 2h of an unsolved captcha —
         // anything older is a leftover, not an active hand-off.
@@ -322,6 +341,43 @@ export default function CampaignView({ token: initialToken }: Props) {
       window.removeEventListener("message", onMsg);
       clearInterval(iv);
     };
+  }, []);
+
+  // Watchdog for the two signals above. 15s of bridge silence = 5 missed polls:
+  // long enough to ride out a tab throttled in the background, short enough that
+  // a closed laptop is caught the moment you come back.
+  useEffect(() => {
+    const iv = setInterval(() => {
+      if (bridgeSeenRef.current && Date.now() - bridgeAtRef.current > 15000) {
+        setBridgeLost(true);
+      }
+    }, 3000);
+    return () => clearInterval(iv);
+  }, []);
+
+  // Server truth, re-checked while the tab stays open. page.tsx only ever checked
+  // it once, so a campaign the backend had already reaped still read "Live" here.
+  useEffect(() => {
+    let dead = false;
+    async function poll() {
+      try {
+        const t = await getToken();
+        if (!t) return;
+        const s = await apiGet<{ running: boolean }>("/campaign/status", t);
+        if (!dead) setServerStopped(!s.running);
+      } catch {
+        /* network blip — the bridge signal still covers us */
+      }
+    }
+    poll();
+    const iv = setInterval(poll, 20000);
+    return () => {
+      dead = true;
+      clearInterval(iv);
+    };
+    // getToken is re-created every render; depending on it would restart the poll
+    // on every state change. Mount once, like the sibling pollers above.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function stopCampaign() {
@@ -531,6 +587,73 @@ export default function CampaignView({ token: initialToken }: Props) {
           .hd-drop-proc .hd-drop-fill, .hd-drop-ring { animation: none; }
         }
       `}</style>
+      {/* Connection lost — the page must never keep saying "Live" over a dead run.
+          Not shown while stopping/stopped: that exit is already explained by its own
+          state, and a scary overlay on a deliberate stop would be a second lie. */}
+      {(serverStopped || bridgeLost) && !stopping && !stopped && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-6
+            bg-background/70 backdrop-blur-md"
+          role="alertdialog"
+          aria-modal="true"
+          aria-labelledby="hd-disc-title"
+        >
+          <div className="w-full max-w-md rounded-2xl border border-border bg-surface p-6 shadow-2xl">
+            <div className="flex items-center gap-2.5 mb-3">
+              <span className="inline-block w-2.5 h-2.5 rounded-full bg-red" />
+              <h2 id="hd-disc-title" className="font-semibold text-text text-[15px]">
+                {serverStopped ? "Campaign stopped" : "Automation disconnected"}
+              </h2>
+            </div>
+
+            <p className="text-sm text-text2 leading-relaxed">
+              {serverStopped
+                ? "The campaign is no longer running. It stops on its own when the browser that was applying goes away — closing your laptop, quitting Chrome, or the automation window being closed."
+                : "We can't reach the HireDrop extension in this browser, so nothing is being applied right now. The automation window was probably closed, or Chrome went to sleep."}
+            </p>
+            <p className="text-xs text-text2/70 mt-2.5">
+              Applications already sent are saved — nothing was lost.
+            </p>
+
+            <div className="flex gap-2.5 mt-5">
+              {serverStopped ? (
+                <a
+                  href="/dashboard"
+                  className="flex-1 text-center px-4 py-2.5 rounded-lg text-sm font-medium
+                    bg-accent text-white hover:opacity-90 transition"
+                >
+                  Back to dashboard
+                </a>
+              ) : (
+                <>
+                  <button
+                    onClick={() => {
+                      // Give the bridge a fresh chance: ping.js answers within a tick
+                      // if the extension is back, which clears this overlay itself.
+                      bridgeAtRef.current = Date.now();
+                      setBridgeLost(false);
+                      window.postMessage({ type: "HIREDROP_GET_LIVE_STATE" }, "*");
+                    }}
+                    className="flex-1 px-4 py-2.5 rounded-lg text-sm font-medium
+                      bg-accent text-white hover:opacity-90 transition"
+                  >
+                    Reconnect
+                  </button>
+                  <button
+                    onClick={stopCampaign}
+                    disabled={stopping}
+                    className="px-4 py-2.5 rounded-lg text-sm font-medium border transition
+                      bg-red/8 text-red border-red/20 hover:bg-red/15 disabled:opacity-50"
+                  >
+                    Stop
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex flex-wrap items-center gap-3 mb-6">
         <a
