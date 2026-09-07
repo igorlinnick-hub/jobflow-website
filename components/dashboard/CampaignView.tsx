@@ -346,13 +346,27 @@ export default function CampaignView({ token: initialToken }: Props) {
   // Watchdog for the two signals above. 15s of bridge silence = 5 missed polls:
   // long enough to ride out a tab throttled in the background, short enough that
   // a closed laptop is caught the moment you come back.
+  // Hidden tabs are exempt: Chrome throttles background timers to ~1/min, which
+  // starves the 3s poll and would flag a perfectly healthy run as disconnected —
+  // crying wolf is worse than staying quiet. On the way back we re-arm the clock
+  // and ask immediately, so a genuinely dead bridge still surfaces within a poll.
   useEffect(() => {
     const iv = setInterval(() => {
+      if (document.hidden) return;
       if (bridgeSeenRef.current && Date.now() - bridgeAtRef.current > 15000) {
         setBridgeLost(true);
       }
     }, 3000);
-    return () => clearInterval(iv);
+    const onVisible = () => {
+      if (document.hidden) return;
+      bridgeAtRef.current = Date.now();
+      window.postMessage({ type: "HIREDROP_GET_LIVE_STATE" }, "*");
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      clearInterval(iv);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
   }, []);
 
   // Server truth, re-checked while the tab stays open. page.tsx only ever checked
