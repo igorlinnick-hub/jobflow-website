@@ -147,6 +147,9 @@ export default function CampaignView({ token: initialToken }: Props) {
   const bridgeSeenRef = useRef(false);
   const bridgeAtRef = useRef(0);
   const [bridgeLost, setBridgeLost] = useState(false);
+  // Idle-dismiss: the user says "it's fine, keep waiting". Re-arms on its own the
+  // moment the log moves again, so dismissing can't blind the next real stall.
+  const [idleDismissedAt, setIdleDismissedAt] = useState<number | null>(null);
   const [serverStopped, setServerStopped] = useState(false);
   const lastScreenshotTs = useRef<number>(0);
   const activityEndRef = useRef<HTMLDivElement>(null);
@@ -394,6 +397,27 @@ export default function CampaignView({ token: initialToken }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // ── Live but idle ──────────────────────────────────────────────────────────
+  // The failure the heartbeat structurally cannot see: `/extension/ping` reports the
+  // extension's STORED campaignRunning flag, and that flag survives a laptop sleep. So
+  // the service worker wakes, dutifully reports "running", the backend refreshes the
+  // heartbeat — and the campaign is immortal on paper while the window that did the
+  // applying is gone. Igor hit exactly this (09-07): "активна, а заявок не прибавляется",
+  // with no Start button because the UI still believed the run.
+  // Output, not liveness, is the honest measure — same principle as the backend's stall
+  // watch, just fast enough for a person watching the screen.
+  const IDLE_SECS = 12 * 60; // > the extension's own 10-min walk watchdog, > a slow form
+  const lastActivityTs = activity.length ? Date.parse(activity[0].timestamp) : 0;
+  const idleSecs = lastActivityTs ? Math.max(0, Math.floor((nowTs - lastActivityTs) / 1000)) : 0;
+  // Silences with an explanation must never alarm: a captcha hand-off and a pending Tap
+  // card are the run WAITING FOR THE HUMAN, which is the product working, not failing.
+  const idle =
+    !!lastActivityTs &&
+    idleSecs > IDLE_SECS &&
+    !captcha &&
+    !reviewPending &&
+    (idleDismissedAt === null || lastActivityTs > idleDismissedAt);
+
   async function stopCampaign() {
     setStopping(true);
     try {
@@ -604,7 +628,7 @@ export default function CampaignView({ token: initialToken }: Props) {
       {/* Connection lost — the page must never keep saying "Live" over a dead run.
           Not shown while stopping/stopped: that exit is already explained by its own
           state, and a scary overlay on a deliberate stop would be a second lie. */}
-      {(serverStopped || bridgeLost) && !stopping && !stopped && (
+      {(serverStopped || bridgeLost || idle) && !stopping && !stopped && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center p-6
             bg-background/70 backdrop-blur-md"
@@ -616,21 +640,49 @@ export default function CampaignView({ token: initialToken }: Props) {
             <div className="flex items-center gap-2.5 mb-3">
               <span className="inline-block w-2.5 h-2.5 rounded-full bg-red" />
               <h2 id="hd-disc-title" className="font-semibold text-text text-[15px]">
-                {serverStopped ? "Campaign stopped" : "Automation disconnected"}
+                {serverStopped
+                  ? "Campaign stopped"
+                  : bridgeLost
+                    ? "Automation disconnected"
+                    : "Nothing is happening"}
               </h2>
             </div>
 
             <p className="text-sm text-text2 leading-relaxed">
               {serverStopped
                 ? "The campaign is no longer running. It stops on its own when the browser that was applying goes away — closing your laptop, quitting Chrome, or the automation window being closed."
-                : "We can't reach the HireDrop extension in this browser, so nothing is being applied right now. The automation window was probably closed, or Chrome went to sleep."}
+                : bridgeLost
+                  ? "We can't reach the HireDrop extension in this browser, so nothing is being applied right now. The automation window was probably closed, or Chrome went to sleep."
+                  : `The campaign still reads as active, but nothing has moved for ${formatElapsed(idleSecs)}. That usually means the window doing the applying went away — most often a closed laptop — while the campaign was never told to stop.`}
             </p>
             <p className="text-xs text-text2/70 mt-2.5">
               Applications already sent are saved — nothing was lost.
             </p>
 
             <div className="flex gap-2.5 mt-5">
-              {serverStopped ? (
+              {idle && !serverStopped && !bridgeLost ? (
+                <>
+                  {/* One press, not two. The friction Igor actually hit was that the
+                      dashboard offers no Start while it believes the run — so the only
+                      way out was Stop, then Start. This does the stop and lands on the
+                      dashboard, where Start is waiting with the same filters. */}
+                  <button
+                    onClick={stopCampaign}
+                    disabled={stopping}
+                    className="flex-1 px-4 py-2.5 rounded-lg text-sm font-medium
+                      bg-accent text-white hover:opacity-90 transition disabled:opacity-50"
+                  >
+                    {stopping ? "Stopping…" : "Stop & start again"}
+                  </button>
+                  <button
+                    onClick={() => setIdleDismissedAt(Date.now())}
+                    className="px-4 py-2.5 rounded-lg text-sm font-medium border transition
+                      border-border text-text2 hover:text-text"
+                  >
+                    Keep waiting
+                  </button>
+                </>
+              ) : serverStopped ? (
                 <a
                   href="/dashboard"
                   className="flex-1 text-center px-4 py-2.5 rounded-lg text-sm font-medium
