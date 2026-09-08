@@ -1,3 +1,5 @@
+import { PRICE_SENTENCE } from "@/lib/pricing";
+
 import Header from "@/components/landing/Header";
 import Footer from "@/components/landing/Footer";
 
@@ -42,7 +44,7 @@ const FAQS = [
   },
   {
     q: "How much does it cost?",
-    a: "$9/week or $29/month — the full product on both plans, cancel anytime in one click. Weekly suits an active search; monthly is better value if it runs longer. Have a promo code? Enter it at signup for free access.",
+    a: `${PRICE_SENTENCE} — the full product on both plans, cancel anytime in one click. Weekly suits an active search; monthly is better value if it runs longer. Have a promo code? Enter it at signup for free access.`,
   },
 ];
 

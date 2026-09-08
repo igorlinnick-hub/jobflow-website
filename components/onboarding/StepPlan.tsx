@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { createClient } from "@/lib/supabase/client";
+import { MONTHLY_PRICE, MONTHLY_USD, WEEKLY_PRICE } from "@/lib/pricing";
 import Button from "@/components/ui/Button";
 
 interface Props {
@@ -24,16 +25,16 @@ const PLANS = [
   {
     id: "weekly",
     name: "Weekly",
-    price: "$9",
+    price: WEEKLY_PRICE,
     period: "/week",
     note: "Sprint mode — cancel the moment you sign an offer.",
   },
   {
     id: "monthly",
     name: "Monthly",
-    price: "$29",
+    price: MONTHLY_PRICE,
     period: "/month",
-    note: "Best value for a full search — about $1 a day.",
+    note: `Best value for a full search — about $${(MONTHLY_USD / 30).toFixed(2)} a day.`,
     highlight: true,
   },
 ];

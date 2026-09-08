@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { PRICE_SENTENCE } from "@/lib/pricing";
+
 import DecorMarks from "./DecorMarks";
 
 export default function GradientCTA() {
@@ -60,7 +62,7 @@ export default function GradientCTA() {
         <p className="text-[#6B6B8A] mb-8">
           Your first 40 applications are free — no card required.
           <br />
-          Then $9/week or $29/month. Cancel anytime.
+          Then {PRICE_SENTENCE}. Cancel anytime.
         </p>
         <Link
           href="/signup"

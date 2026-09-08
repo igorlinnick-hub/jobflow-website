@@ -1,3 +1,5 @@
+import { PRICE_SENTENCE } from "@/lib/pricing";
+
 import Header from "@/components/landing/Header";
 import Footer from "@/components/landing/Footer";
 
@@ -36,7 +38,7 @@ export default function TermsPage() {
 
             <section>
               <h2 className="text-lg font-semibold text-gray-900 mb-2">4. Subscription & Billing</h2>
-              <p>HireDrop is billed at $9/week or $29/month — the full product on either plan. Subscriptions renew automatically at the end of each billing period until you cancel. You can cancel at any time in Settings → Billing (&quot;Manage subscription / cancel&quot;); cancellation takes effect at the end of the current billing period. Refunds are handled on a case-by-case basis.</p>
+              <p>HireDrop is billed at {PRICE_SENTENCE} — the full product on either plan. Subscriptions renew automatically at the end of each billing period until you cancel. You can cancel at any time in Settings → Billing (&quot;Manage subscription / cancel&quot;); cancellation takes effect at the end of the current billing period. Refunds are handled on a case-by-case basis.</p>
             </section>
 
             <section>
