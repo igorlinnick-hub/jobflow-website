@@ -94,6 +94,11 @@ export default function QuickActions({
   // approve each before it sends. Drives the daily cap + cover-letter model + the extension's
   // review-stop. Editable right here so the choice sits next to Start.
   const [mode, setMode] = useState<"auto" | "tap">("auto");
+  // Until the profile answers, we don't KNOW the mode — and the default is the dangerous
+  // one: an early "Start Campaign" click on a tap user's dashboard launched a full AUTO
+  // walk over jobs they never swiped (the 06:50 run, 2026-09-08). Gate the primary
+  // button on this instead of guessing "auto".
+  const [modeLoaded, setModeLoaded] = useState(false);
 
   // Optional filters (moved out of FitChoiceModal): salary range + non-remote radius.
   // Salary kept as raw strings (empty = no filter). Prefilled from the profile.
@@ -131,7 +136,8 @@ export default function QuickActions({
         if (!user) return;
         const { data } = await supabase.from("profiles").select("submit_mode").eq("user_id", user.id).single();
         if (data?.submit_mode === "tap") setMode("tap");
-      } catch { /* ignore */ }
+        setModeLoaded(true);
+      } catch { /* ignore — the button stays gated rather than guessing "auto" */ }
     })();
   }, []);
 
@@ -546,7 +552,7 @@ export default function QuickActions({
             {/* Primary action is mode-aware: Auto starts the campaign here; Tap opens
                 the dedicated tap page (its own Start lives there). Prevents the "auto
                 started with tap mode" trap. */}
-            <button onClick={mode === "tap" ? goTap : ensureReadyThenLaunch} disabled={busy !== null}
+            <button onClick={mode === "tap" ? goTap : ensureReadyThenLaunch} disabled={busy !== null || !modeLoaded}
               className="flex items-center gap-2 px-5 py-2 text-sm font-semibold rounded-xl
                 bg-accent text-white hover:bg-accent2 disabled:opacity-50 transition shadow-sm whitespace-nowrap">
               <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
@@ -554,7 +560,7 @@ export default function QuickActions({
                   d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z"
                   clipRule="evenodd" />
               </svg>
-              {mode === "tap" ? "Open Tap" : (busy === "start" ? "Starting…" : "Start Campaign")}
+              {!modeLoaded ? "…" : mode === "tap" ? "Open Tap" : (busy === "start" ? "Starting…" : "Start Campaign")}
             </button>
           </>
         )}
