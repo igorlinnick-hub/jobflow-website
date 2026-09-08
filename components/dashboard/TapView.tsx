@@ -45,7 +45,10 @@ export default function TapView({ token: initialToken }: { token: string }) {
   const router = useRouter();
   const [running, setRunning] = useState(false);
   const [applied, setApplied] = useState(0);
-  const [jobsReady, setJobsReady] = useState(0);
+  // Cards this deck actually holds. NOT campaign/status.jobs_ready — that counts every new
+  // pool row on your enabled platforms, so it would keep announcing "145 in queue" over a
+  // deck the search narrowed to a dozen. The number has to be the thing you can swipe.
+  const [inQueue, setInQueue] = useState(0);
   const [busy, setBusy] = useState<null | "start" | "stop">(null);
   const [readyOpen, setReadyOpen] = useState(false);
   const [readyChecks, setReadyChecks] = useState<ReadinessCheck[]>([]);
@@ -56,6 +59,10 @@ export default function TapView({ token: initialToken }: { token: string }) {
   // the backend rides along in the background so tapping never blocks.
   const [deck, setDeck] = useState<Job[]>([]);
   const [deckLoaded, setDeckLoaded] = useState(false);
+  // How many swipeable pool rows the CURRENT search left out. A deck that quietly shrank
+  // looks exactly like a broken one, so the number is on screen with the reason.
+  const [offSearch, setOffSearch] = useState(0);
+  const [deckKeywords, setDeckKeywords] = useState<string[]>([]);
   const [approvedCount, setApprovedCount] = useState(0); // queued for background apply
 
   const [acting, setActing] = useState<null | "approve" | "skip">(null);
@@ -177,10 +184,21 @@ export default function TapView({ token: initialToken }: { token: string }) {
     } catch { /* cooldown / offline — the next empty-deck poll retries after the throttle */ }
   }, [getToken]);
 
+  // GET /jobs is the ARCHIVE — every job ever harvested, under every keyword set the user
+  // has tried, INSERT-only and never expiring. Reading it here is what made the deck ignore
+  // the search: on Igor's account (09-08) 341 of 535 swipeable rows were leftovers from
+  // other days' keywords, the oldest six weeks old. /jobs/deck applies the same relevance
+  // rule the harvest used, server-side, so the phone and the desktop see one deck.
   const loadDeck = useCallback(async () => {
     try {
       const t = await getToken();
-      const jobs = await apiGet<Job[]>("/jobs", t);
+      const res = await apiGet<{ cards: Job[]; pool: number; off_search: number; keywords: string[] }>(
+        "/jobs/deck", t
+      );
+      const jobs = res.cards || [];
+      setInQueue(jobs.length);
+      setOffSearch(res.off_search || 0);
+      setDeckKeywords(res.keywords || []);
       setDeck((prev) => {
         const top = prev[0]?.id;
         const next = buildDeck(jobs, top).filter((j) => !decidedRef.current.has(j.id));
@@ -198,13 +216,13 @@ export default function TapView({ token: initialToken }: { token: string }) {
     return () => clearInterval(iv);
   }, [loadDeck]);
 
-  // Applied count + jobs-ready from the backend.
+  // Applied count + run state from the backend. The queue count comes from the deck itself
+  // (see inQueue) — campaign/status.jobs_ready answers a different question.
   const refreshStats = useCallback(async () => {
     try {
       const t = await getToken();
-      const s = await apiGet<{ today_applications: number; jobs_ready: number; running: boolean }>("/campaign/status", t);
+      const s = await apiGet<{ today_applications: number; running: boolean }>("/campaign/status", t);
       setApplied(s.today_applications);
-      setJobsReady(s.jobs_ready);
       setRunning((r) => (remote ? s.running : r || s.running));
     } catch {}
   }, [getToken, remote]);
@@ -465,7 +483,15 @@ export default function TapView({ token: initialToken }: { token: string }) {
           <div className="text-sm text-text2 ml-1">
             <span className="text-text font-medium">{applied}</span> applied
             <span className="mx-2 text-text2/30">·</span>
-            <span className="text-text font-medium">{jobsReady}</span> in queue
+            <span className="text-text font-medium">{inQueue}</span> in queue
+            {offSearch > 0 && (
+              <>
+                <span className="mx-2 text-text2/30">·</span>
+                <span title={`These don't match ${deckKeywords.join(", ") || "your search"} — change your keywords on the dashboard to see them.`}>
+                  {offSearch} off-search hidden
+                </span>
+              </>
+            )}
           </div>
         )}
         {running && !remote && (
@@ -598,12 +624,12 @@ export default function TapView({ token: initialToken }: { token: string }) {
                       </div>
                       {typeof card.score === "number" && (
                         <span className="shrink-0 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold border"
-                          style={card.score >= 70
+                          style={card.score >= 8
                             ? { background: "var(--hdc-pmint-bg)", color: "var(--hdc-pmint-tx)", borderColor: "var(--hdc-pmint-bd)", boxShadow: "inset 0 1px 0 rgba(255,255,255,.15)" }
-                            : card.score >= 55
+                            : card.score >= 5
                             ? { background: "var(--hdc-pvio-bg)", color: "var(--hdc-pvio-tx)", borderColor: "var(--hdc-pvio-bd)", boxShadow: "inset 0 1px 0 rgba(255,255,255,.15)" }
                             : { background: "var(--hdc-pmut-bg)", color: "var(--hdc-pmut-tx)", borderColor: "var(--hdc-pmut-bd)" }}>
-                          {card.score}% fit
+                          {card.score}/10 fit
                         </span>
                       )}
                     </div>

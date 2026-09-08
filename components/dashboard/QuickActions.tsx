@@ -154,9 +154,12 @@ export default function QuickActions({
     } catch { setMode(prev); }
   }
 
-  // Tap is its OWN experience: selecting it persists the mode + the current platform
+  // Tap is its OWN experience: OPENING it persists the mode + the current platform
   // selection, arms the extension's review-stop, and opens the dedicated /dashboard/tap
   // page (a clean card stack) rather than the auto campaign flow.
+  // Only the primary button calls this. Picking the card just picks the mode (saveMode):
+  // it used to navigate on the spot, so choosing Tap teleported you out of the dashboard
+  // before you could set keywords or a location, and "Open Tap" was decoration.
   async function goTap() {
     setMode("tap");
     try {
@@ -451,7 +454,7 @@ export default function QuickActions({
       {/* How you apply — the primary choice, up top as two big cards. Hidden while a
           campaign is running (mode is a pre-launch decision). */}
       {!campaignRunning && (
-        <LaunchModeCards mode={mode} onAuto={() => saveMode("auto")} onTap={goTap} />
+        <LaunchModeCards mode={mode} onAuto={() => saveMode("auto")} onTap={() => saveMode("tap")} />
       )}
 
       {/* ── Main search bar ── */}
