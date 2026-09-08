@@ -701,16 +701,20 @@ export default function CampaignView({ token: initialToken }: Props) {
             <div className="flex items-center gap-2.5 mb-3">
               <span className="inline-block w-2.5 h-2.5 rounded-full bg-red" />
               <h2 id="hd-disc-title" className="font-semibold text-text text-[15px]">
-                {serverStopped
-                  ? "Campaign stopped"
-                  : bridgeLost
-                    ? "Automation disconnected"
-                    : "Nothing is happening"}
+                {signedOut
+                  ? `Signed out of ${activePlatform?.name}`
+                  : serverStopped
+                    ? "Campaign stopped"
+                    : bridgeLost
+                      ? "Automation disconnected"
+                      : "Nothing is happening"}
               </h2>
             </div>
 
             <p className="text-sm text-text2 leading-relaxed">
-              {serverStopped
+              {signedOut
+                ? `${activePlatform?.name} signed you out, so there was nothing left for the campaign to apply to. Sign back in and start it again — your filters are kept.`
+                : serverStopped
                 ? "The campaign is no longer running. It stops on its own when the browser that was applying goes away — closing your laptop, quitting Chrome, or the automation window being closed."
                 : bridgeLost
                   ? "We can't reach the HireDrop extension in this browser, so nothing is being applied right now. The automation window was probably closed, or Chrome went to sleep."
@@ -721,7 +725,40 @@ export default function CampaignView({ token: initialToken }: Props) {
             </p>
 
             <div className="flex gap-2.5 mt-5">
-              {idle && !serverStopped && !bridgeLost ? (
+              {/* Whatever brought this overlay up, if the BOARD is what's blocking us the
+                  first button is the way back in — not a trip to the dashboard. Igor,
+                  09-07: "лучше вместо back to dashboard давать им путь к решению".
+                  Signing in is also the one thing that makes restarting worth anything. */}
+              {signedOut ? (
+                <>
+                  <button
+                    onClick={() => openPlatformLogin(activePlatform!.id)}
+                    className="flex-1 px-4 py-2.5 rounded-lg text-sm font-medium
+                      bg-accent text-white hover:opacity-90 transition"
+                  >
+                    {loginOpened === activePlatform?.id
+                      ? "Opened — finish signing in"
+                      : `Sign in to ${activePlatform?.name}`}
+                  </button>
+                  {serverStopped ? (
+                    <a
+                      href="/dashboard"
+                      className="px-4 py-2.5 rounded-lg text-sm font-medium border transition
+                        border-border text-text2 hover:text-text"
+                    >
+                      Start again
+                    </a>
+                  ) : (
+                    <button
+                      onClick={() => setIdleDismissedAt(Date.now())}
+                      className="px-4 py-2.5 rounded-lg text-sm font-medium border transition
+                        border-border text-text2 hover:text-text"
+                    >
+                      Keep waiting
+                    </button>
+                  )}
+                </>
+              ) : idle && !serverStopped && !bridgeLost ? (
                 <>
                   {/* One press, not two. The friction Igor actually hit was that the
                       dashboard offers no Start while it believes the run — so the only
@@ -749,7 +786,7 @@ export default function CampaignView({ token: initialToken }: Props) {
                   className="flex-1 text-center px-4 py-2.5 rounded-lg text-sm font-medium
                     bg-accent text-white hover:opacity-90 transition"
                 >
-                  Back to dashboard
+                  Start a new run
                 </a>
               ) : (
                 <>
