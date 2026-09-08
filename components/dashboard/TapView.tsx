@@ -318,15 +318,36 @@ export default function TapView({ token: initialToken }: { token: string }) {
   }
 
   // ── Decide: approve → queued for background apply; skip → out of the pool ──
+  // The PATCH is the ONLY thing that makes a swipe real: the executor builds its queue
+  // from rows whose status is `approved`. It used to be fire-and-forget with an empty
+  // .catch() — so a failed write took the card off the deck, counted it as approved on
+  // screen, and left a job no run would ever pick up (Igor 09-08: "до них никогда не
+  // доходит очередь"). One retry, then the card comes BACK and says why.
   function decide(decision: "approve" | "skip") {
     const cur = deck[0];
     if (!cur || acting) return;
     setActing(decision);
     decidedRef.current.add(cur.id);
-    // Optimistic PATCH — the card flies off instantly; the write rides in the background.
-    const patch = getToken()
-      .then((t) => apiPatch(`/jobs/${cur.id}/status`, t, { status: decision === "approve" ? "approved" : "skipped" }))
-      .catch(() => {});
+    const status = decision === "approve" ? "approved" : "skipped";
+    const write = async (): Promise<boolean> => {
+      for (let attempt = 0; attempt < 2; attempt++) {
+        try {
+          const t = await getToken();
+          await apiPatch(`/jobs/${cur.id}/status`, t, { status });
+          return true;
+        } catch { /* one retry covers a token blip / a dropped request */ }
+      }
+      return false;
+    };
+    const patch = write().then((ok) => {
+      if (ok) return true;
+      // Undo everything the optimistic path claimed, and hand the card back.
+      decidedRef.current.delete(cur.id);
+      if (decision === "approve") setApprovedCount((n) => Math.max(0, n - 1));
+      setDeck((d) => (d.some((j) => j.id === cur.id) ? d : [cur, ...d]));
+      setErr(`Couldn't save that ${decision} — the card is back on top. Check your connection and swipe again.`);
+      return false;
+    });
     if (decision === "approve") {
       setApprovedCount((n) => n + 1);
       // Kick the background executor on the FIRST approval so applying starts without a
@@ -336,7 +357,7 @@ export default function TapView({ token: initialToken }: { token: string }) {
       // Later approvals are picked up by the executor's rebuild + idle-refill.
       if (!remote && !running && !autoStartedRef.current) {
         autoStartedRef.current = true;
-        patch.then(() => start());
+        patch.then((ok) => { if (ok) start(); else autoStartedRef.current = false; });
       }
     }
     setFly(decision === "approve" ? 1 : -1);
