@@ -9,7 +9,7 @@ import Select from "@/components/ui/Select";
 import ResumeATSPanel from "@/components/dashboard/ResumeATSPanel";
 import SubmitModePanel from "@/components/dashboard/SubmitModePanel";
 import BillingSection from "@/components/dashboard/BillingSection";
-import { PLATFORMS, LOCATIONS, JOB_TYPES } from "@/lib/constants";
+import { PLATFORMS } from "@/lib/constants";
 import type { UserProfile } from "@/lib/types";
 
 const emptyProfile: UserProfile = {
@@ -41,7 +41,6 @@ const emptyProfile: UserProfile = {
 export default function SettingsPage() {
   const supabase = createClient();
   const [profile, setProfile] = useState<UserProfile>(emptyProfile);
-  const [keywordInput, setKeywordInput] = useState("");
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [dirty, setDirty] = useState(false); // unsaved changes → the Save button lights up
@@ -110,16 +109,6 @@ export default function SettingsPage() {
     setDirty(true);
   }
 
-  function addKeyword(e: React.KeyboardEvent<HTMLInputElement>) {
-    if (e.key === "Enter" || e.key === ",") {
-      e.preventDefault();
-      const word = keywordInput.trim().replace(/,$/, "");
-      if (word && !profile.keywords.includes(word)) {
-        update({ keywords: [...profile.keywords, word] });
-      }
-      setKeywordInput("");
-    }
-  }
 
   function togglePlatform(id: string) {
     const current = profile.platforms;
@@ -144,9 +133,9 @@ export default function SettingsPage() {
         name: profile.name,
         last_name: profile.last_name,
         phone: profile.phone,
-        keywords: profile.keywords,
-        location: profile.location,
-        job_type: profile.job_type,
+        // keywords / location / job_type are the DASHBOARD's to write (QuickActions →
+        // /profile/prefs). Saving them from here too is what let a stale Settings tab
+        // overwrite the filters of a running campaign.
         platforms: profile.platforms,
         writing_style: profile.writing_style,
         linkedin_url: profile.linkedin_url,
@@ -311,58 +300,31 @@ export default function SettingsPage() {
         {/* Billing & Plan */}
         <BillingSection />
 
-        {/* Job Preferences */}
-        <section className="bg-surface border border-border rounded-xl p-6 space-y-4">
+        {/* Search filters live on the dashboard — ONE editor, not two.
+            This card used to edit keywords / location / job type, the very columns the
+            dashboard's filter bar writes on every run. Two editors over one record is not
+            a convenience, it's a data race: Settings saves the WHOLE profile from whatever
+            snapshot the page loaded, so pressing "Save changes" here for an unrelated
+            field (a phone number) silently reverted the filters a campaign was started
+            with. Igor caught the drift on 09-07 — the run was walking four keywords while
+            this page still showed two. */}
+        <section className="bg-surface border border-border rounded-xl p-6">
           <h3 className="font-semibold text-text">Job Preferences</h3>
-
-          <div className="space-y-1.5">
-            <label className="block text-sm font-medium text-text">Keywords</label>
-            <div className="flex flex-wrap gap-2 mb-2">
-              {profile.keywords.map((kw) => (
-                <span key={kw} className="inline-flex items-center gap-1 px-3 py-1 bg-accent/10 text-accent text-sm rounded-full">
-                  {kw}
-                  <button type="button" onClick={() => update({ keywords: profile.keywords.filter((k) => k !== kw) })} className="hover:text-red">
-                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </span>
-              ))}
-            </div>
-            <Input
-              value={keywordInput}
-              onChange={(e) => setKeywordInput(e.target.value)}
-              onKeyDown={addKeyword}
-              placeholder="Add keyword, press Enter"
-            />
-          </div>
-
-          <Select
-            label="Location"
-            value={profile.location}
-            onChange={(e) => update({ location: e.target.value })}
-            options={LOCATIONS.map((l) => ({ value: l.value, label: l.label }))}
-          />
-
-          <div className="space-y-1.5">
-            <label className="block text-sm font-medium text-text">Job type</label>
-            <div className="flex gap-4">
-              {JOB_TYPES.map((jt) => (
-                <label key={jt.value} className="flex items-center gap-2 cursor-pointer text-sm text-text">
-                  <input
-                    type="radio"
-                    name="job_type"
-                    value={jt.value}
-                    checked={profile.job_type === jt.value}
-                    onChange={(e) => update({ job_type: e.target.value })}
-                    className="accent-accent"
-                  />
-                  {jt.label}
-                </label>
-              ))}
-            </div>
-          </div>
-          {saveBar()}
+          <p className="text-sm text-text2 mt-1.5 leading-relaxed">
+            What you&apos;re looking for — keywords, location, job type — is set on the
+            dashboard, right above the Start button, so it&apos;s always the same thing you
+            launch a run with.
+          </p>
+          <a
+            href="/dashboard"
+            className="inline-flex items-center gap-1.5 mt-3.5 px-3.5 py-2 rounded-lg
+              text-xs font-medium bg-accent text-white hover:opacity-90 transition"
+          >
+            Edit search filters
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </a>
         </section>
 
         {/* Platforms */}
