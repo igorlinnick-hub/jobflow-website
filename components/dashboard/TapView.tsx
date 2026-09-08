@@ -63,7 +63,12 @@ export default function TapView({ token: initialToken }: { token: string }) {
   // looks exactly like a broken one, so the number is on screen with the reason.
   const [offSearch, setOffSearch] = useState(0);
   const [deckKeywords, setDeckKeywords] = useState<string[]>([]);
-  const [approvedCount, setApprovedCount] = useState(0); // queued for background apply
+  const [approvedCount, setApprovedCount] = useState(0); // approvals made in THIS tab
+  // Server truth about the work list (GET /campaign/queue): what is actually left to
+  // apply, across reloads and devices. approvedCount only knows about this tab — it reset
+  // to zero on every refresh and never saw a swipe made from the phone.
+  const [waiting, setWaiting] = useState(0);
+  const [heldByCaps, setHeldByCaps] = useState(0);
 
   const [acting, setActing] = useState<null | "approve" | "skip">(null);
   const [drag, setDrag] = useState(0);
@@ -224,6 +229,9 @@ export default function TapView({ token: initialToken }: { token: string }) {
       const s = await apiGet<{ today_applications: number; running: boolean }>("/campaign/status", t);
       setApplied(s.today_applications);
       setRunning((r) => (remote ? s.running : r || s.running));
+      const q = await apiGet<{ waiting: number; held_by_caps: number }>("/campaign/queue", t);
+      setWaiting(q.waiting || 0);
+      setHeldByCaps(q.held_by_caps || 0);
     } catch {}
   }, [getToken, remote]);
 
@@ -404,7 +412,7 @@ export default function TapView({ token: initialToken }: { token: string }) {
     return PLATFORMS.find((x) => x.id === p)?.name || (p ? p[0].toUpperCase() + p.slice(1) : "");
   }, [card]);
   const brandColor = card ? BRAND[card.platform] || "#6C5CE7" : "#6C5CE7";
-  const hasSession = running || deck.length > 0 || approvedCount > 0;
+  const hasSession = running || deck.length > 0 || approvedCount > 0 || waiting > 0;
 
   return (
     <DashboardLayout>
@@ -727,7 +735,7 @@ export default function TapView({ token: initialToken }: { token: string }) {
             </div>
             <p className="text-center text-[11px] text-text2/40 mt-3">
               Swipe → to apply · ← to skip — or use the buttons
-              {approvedCount > 0 && <> · <span className="text-text2/70">{approvedCount} queued</span></>}
+              {waiting > 0 && <> · <span className="text-text2/70">{waiting} waiting to apply</span></>}
             </p>
           </div>
         ) : !deckLoaded ? (
@@ -771,7 +779,12 @@ export default function TapView({ token: initialToken }: { token: string }) {
                 You&apos;ve swiped through what&apos;s ready. New matches drop in here as we find them.
               </p>
             </div>
-            {approvedCount > 0 && <p className="text-xs text-text2/50">{approvedCount} approved this session</p>}
+            {waiting > 0 && (
+              <p className="text-xs text-text2/50">
+                {waiting} approved waiting to apply
+                {heldByCaps > 0 && ` — ${heldByCaps} held by today's limit`}
+              </p>
+            )}
           </div>
         ) : (
           /* ── Idle: nothing in the pool yet — start finding ── */
