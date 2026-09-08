@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import Input from "@/components/ui/Input";
-import Textarea from "@/components/ui/Textarea";
 import Select from "@/components/ui/Select";
 import ResumeATSPanel from "@/components/dashboard/ResumeATSPanel";
 import BillingSection from "@/components/dashboard/BillingSection";
@@ -125,7 +124,6 @@ export default function SettingsPage() {
         // keywords / location / job_type / platforms / submit_mode belong to the
         // DASHBOARD (QuickActions → /profile/prefs). Saving them from here too is what let
         // a stale Settings tab overwrite the filters of a running campaign.
-        writing_style: profile.writing_style,
         linkedin_url: profile.linkedin_url,
         portfolio_url: profile.portfolio_url,
         street_address: profile.street_address,
@@ -299,9 +297,9 @@ export default function SettingsPage() {
         <section className="bg-surface border border-border rounded-xl p-6">
           <h3 className="font-semibold text-text">Your search</h3>
           <p className="text-sm text-text2 mt-1.5 leading-relaxed">
-            Keywords, location, job type, where to apply and whether we send or you tap —
-            all of it sits on the dashboard, next to the Start button, so a run always uses
-            what you can see.
+            Keywords, location, job type, where to apply, whether we send or you tap, and
+            how your letters sound — all of it sits on the dashboard, next to the Start
+            button, so a run always uses what you can see.
           </p>
           <div className="flex flex-wrap gap-2.5 mt-3.5">
             <a
@@ -330,18 +328,6 @@ export default function SettingsPage() {
         {/* Apply Mode moved to a launch-time picker (FitChoiceModal on Start) —
             no longer a Settings panel. */}
 
-        {/* Writing Style */}
-        <section className="bg-surface border border-border rounded-xl p-6 space-y-4">
-          <h3 className="font-semibold text-text">Writing Style</h3>
-          <Textarea
-            value={profile.writing_style}
-            onChange={(e) => update({ writing_style: e.target.value })}
-            rows={4}
-            placeholder="Paste a sample of your writing..."
-            hint="AI will match your tone in cover letters."
-          />
-          {saveBar()}
-        </section>
       </div>
     </DashboardLayout>
   );

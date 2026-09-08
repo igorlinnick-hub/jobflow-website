@@ -127,6 +127,30 @@ export default function QuickActions({
     return () => clearInterval(poll);
   }, []);
 
+  // Letter voice (profile.writing_style). It belongs on this screen — it decides how every
+  // cover letter this run sends will read — but it is NOT worth a block of its own, so it
+  // lives as one line under the map that opens in place (Igor, 09-07: "реально не хочется
+  // нагромождать").
+  const [letterStyle, setLetterStyle] = useState("");
+  const [letterOpen, setLetterOpen] = useState(false);
+  const [letterDraft, setLetterDraft] = useState("");
+  const [letterSaving, setLetterSaving] = useState(false);
+
+  async function saveLetterStyle() {
+    setLetterSaving(true);
+    const next = letterDraft.trim();
+    try {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        await supabase.from("profiles").update({ writing_style: next }).eq("user_id", user.id);
+        setLetterStyle(next);
+        setLetterOpen(false);
+      }
+    } catch { /* keep the editor open so the text isn't lost */ }
+    setLetterSaving(false);
+  }
+
   // Load the saved submit mode so the toggle reflects the profile.
   useEffect(() => {
     (async () => {
@@ -134,8 +158,9 @@ export default function QuickActions({
         const supabase = createClient();
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return;
-        const { data } = await supabase.from("profiles").select("submit_mode").eq("user_id", user.id).single();
+        const { data } = await supabase.from("profiles").select("submit_mode, writing_style").eq("user_id", user.id).single();
         if (data?.submit_mode === "tap") setMode("tap");
+        if (data?.writing_style) { setLetterStyle(data.writing_style); setLetterDraft(data.writing_style); }
         setModeLoaded(true);
       } catch { /* ignore — the button stays gated rather than guessing "auto" */ }
     })();
@@ -682,6 +707,66 @@ export default function QuickActions({
           />
         </div>
       )}
+
+      {/* Letter voice — a line, not a section. Closed it's a sentence you can read at a
+          glance; open it's the same textarea Settings used to hold, saved to the same
+          field the cover-letter prompt reads. */}
+      <div className="px-1">
+        {!letterOpen ? (
+          <button
+            type="button"
+            onClick={() => { setLetterDraft(letterStyle); setLetterOpen(true); }}
+            className="group flex items-center gap-2 text-xs text-text2 hover:text-text transition"
+          >
+            <svg className="w-3.5 h-3.5 shrink-0 text-accent/70" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            </svg>
+            {letterStyle ? (
+              <span className="truncate max-w-md">
+                Letters sound like you: <span className="text-text2/70">&ldquo;{letterStyle.slice(0, 70)}{letterStyle.length > 70 ? "…" : ""}&rdquo;</span>
+              </span>
+            ) : (
+              <span>Letters use a plain professional tone — <span className="text-accent">add your voice</span></span>
+            )}
+            <span className="opacity-0 group-hover:opacity-100 transition text-accent">Edit</span>
+          </button>
+        ) : (
+          <div className="max-w-lg rounded-xl border border-border bg-surface p-3">
+            <label className="block text-xs font-medium text-text mb-1.5">
+              How your letters should sound
+            </label>
+            <textarea
+              value={letterDraft}
+              onChange={(e) => setLetterDraft(e.target.value)}
+              rows={4}
+              maxLength={1500}
+              autoFocus
+              placeholder="Direct and warm. No buzzwords, no 'I am writing to express my interest'. Lead with what I actually built."
+              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-xs
+                text-text placeholder:text-text2/50 focus:outline-none focus:border-accent/50"
+            />
+            <div className="flex items-center gap-2 mt-2">
+              <button
+                type="button"
+                onClick={saveLetterStyle}
+                disabled={letterSaving}
+                className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-accent text-white
+                  hover:bg-accent2 disabled:opacity-50 transition"
+              >
+                {letterSaving ? "Saving…" : "Save"}
+              </button>
+              <button
+                type="button"
+                onClick={() => setLetterOpen(false)}
+                className="px-3 py-1.5 rounded-lg text-xs font-medium text-text2 hover:text-text transition"
+              >
+                Cancel
+              </button>
+              <span className="ml-auto text-[10px] text-text2/60">{letterDraft.length}/1500</span>
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* Error. `context_invalidated` isn't a real failure — it means the extension was
           just reloaded/updated and this tab still holds the dead content-script bridge.
