@@ -7,9 +7,7 @@ import Input from "@/components/ui/Input";
 import Textarea from "@/components/ui/Textarea";
 import Select from "@/components/ui/Select";
 import ResumeATSPanel from "@/components/dashboard/ResumeATSPanel";
-import SubmitModePanel from "@/components/dashboard/SubmitModePanel";
 import BillingSection from "@/components/dashboard/BillingSection";
-import { PLATFORMS, LOCATIONS, JOB_TYPES } from "@/lib/constants";
 import type { UserProfile } from "@/lib/types";
 
 const emptyProfile: UserProfile = {
@@ -41,7 +39,6 @@ const emptyProfile: UserProfile = {
 export default function SettingsPage() {
   const supabase = createClient();
   const [profile, setProfile] = useState<UserProfile>(emptyProfile);
-  const [keywordInput, setKeywordInput] = useState("");
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [dirty, setDirty] = useState(false); // unsaved changes → the Save button lights up
@@ -110,26 +107,7 @@ export default function SettingsPage() {
     setDirty(true);
   }
 
-  function addKeyword(e: React.KeyboardEvent<HTMLInputElement>) {
-    if (e.key === "Enter" || e.key === ",") {
-      e.preventDefault();
-      const word = keywordInput.trim().replace(/,$/, "");
-      if (word && !profile.keywords.includes(word)) {
-        update({ keywords: [...profile.keywords, word] });
-      }
-      setKeywordInput("");
-    }
-  }
 
-  function togglePlatform(id: string) {
-    const current = profile.platforms;
-    if (current.includes(id)) {
-      if (current.length === 1) return;
-      update({ platforms: current.filter((p) => p !== id) });
-    } else {
-      update({ platforms: [...current, id] });
-    }
-  }
 
   async function handleSave() {
     setSaving(true);
@@ -144,10 +122,9 @@ export default function SettingsPage() {
         name: profile.name,
         last_name: profile.last_name,
         phone: profile.phone,
-        keywords: profile.keywords,
-        location: profile.location,
-        job_type: profile.job_type,
-        platforms: profile.platforms,
+        // keywords / location / job_type / platforms / submit_mode belong to the
+        // DASHBOARD (QuickActions → /profile/prefs). Saving them from here too is what let
+        // a stale Settings tab overwrite the filters of a running campaign.
         writing_style: profile.writing_style,
         linkedin_url: profile.linkedin_url,
         portfolio_url: profile.portfolio_url,
@@ -311,108 +288,40 @@ export default function SettingsPage() {
         {/* Billing & Plan */}
         <BillingSection />
 
-        {/* Job Preferences */}
-        <section className="bg-surface border border-border rounded-xl p-6 space-y-4">
-          <h3 className="font-semibold text-text">Job Preferences</h3>
-
-          <div className="space-y-1.5">
-            <label className="block text-sm font-medium text-text">Keywords</label>
-            <div className="flex flex-wrap gap-2 mb-2">
-              {profile.keywords.map((kw) => (
-                <span key={kw} className="inline-flex items-center gap-1 px-3 py-1 bg-accent/10 text-accent text-sm rounded-full">
-                  {kw}
-                  <button type="button" onClick={() => update({ keywords: profile.keywords.filter((k) => k !== kw) })} className="hover:text-red">
-                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </span>
-              ))}
-            </div>
-            <Input
-              value={keywordInput}
-              onChange={(e) => setKeywordInput(e.target.value)}
-              onKeyDown={addKeyword}
-              placeholder="Add keyword, press Enter"
-            />
+        {/* Settings stopped being a second control panel (Igor, 09-07: "на главной
+            выбираются фильтры — пусть там и будет главный управляющий модуль").
+            Keywords / location / job type, the platform list and the submit mode all
+            steer a RUN, and a run is started from the dashboard. Editing them from two
+            screens wasn't a convenience: this page saves the whole profile from whatever
+            snapshot it loaded, so a Save here for an unrelated field silently reverted
+            the filters a live campaign was started with. What's left in Settings is who
+            you are — the things a form asks about you. */}
+        <section className="bg-surface border border-border rounded-xl p-6">
+          <h3 className="font-semibold text-text">Your search</h3>
+          <p className="text-sm text-text2 mt-1.5 leading-relaxed">
+            Keywords, location, job type, where to apply and whether we send or you tap —
+            all of it sits on the dashboard, next to the Start button, so a run always uses
+            what you can see.
+          </p>
+          <div className="flex flex-wrap gap-2.5 mt-3.5">
+            <a
+              href="/dashboard"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs
+                font-medium bg-accent text-white hover:opacity-90 transition"
+            >
+              Search &amp; apply settings
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </a>
+            <a
+              href="/dashboard/platforms"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs
+                font-medium border border-border text-text2 hover:text-text transition"
+            >
+              Connect platforms
+            </a>
           </div>
-
-          <Select
-            label="Location"
-            value={profile.location}
-            onChange={(e) => update({ location: e.target.value })}
-            options={LOCATIONS.map((l) => ({ value: l.value, label: l.label }))}
-          />
-
-          <div className="space-y-1.5">
-            <label className="block text-sm font-medium text-text">Job type</label>
-            <div className="flex gap-4">
-              {JOB_TYPES.map((jt) => (
-                <label key={jt.value} className="flex items-center gap-2 cursor-pointer text-sm text-text">
-                  <input
-                    type="radio"
-                    name="job_type"
-                    value={jt.value}
-                    checked={profile.job_type === jt.value}
-                    onChange={(e) => update({ job_type: e.target.value })}
-                    className="accent-accent"
-                  />
-                  {jt.label}
-                </label>
-              ))}
-            </div>
-          </div>
-          {saveBar()}
-        </section>
-
-        {/* Platforms */}
-        <section className="bg-surface border border-border rounded-xl p-6 space-y-5">
-          <h3 className="font-semibold text-text">Platforms</h3>
-
-          {/* Auto-apply */}
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-semibold text-green uppercase tracking-wide">Auto-apply</span>
-              <span className="text-xs text-text2">Extension fills & submits the form</span>
-            </div>
-            {PLATFORMS.filter((p) => p.autoApply && !p.unavailable).map((platform) => {
-              const isSelected = profile.platforms.includes(platform.id);
-              return (
-                <button type="button" key={platform.id} onClick={() => togglePlatform(platform.id)}
-                  className={["text-left w-full p-3 rounded-lg border-2 transition text-sm", isSelected ? "border-accent bg-accent/5" : "border-border hover:border-text2"].join(" ")}>
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium text-text">{platform.name}</span>
-                    <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-green/10 text-green">Auto-apply</span>
-                  </div>
-                  <span className="text-xs text-text2">{platform.description}</span>
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Discovery */}
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-semibold text-accent uppercase tracking-wide">Discovery</span>
-              <span className="text-xs text-text2">We find jobs, you apply via the listing</span>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {/* `!p.unavailable`: a source we can't fetch is not offered as a choice —
-                  picking it would just save a preference that returns nothing. Paused
-                  sources are named on /dashboard/platforms with the reason. */}
-              {PLATFORMS.filter((p) => !p.autoApply && !p.unavailable).map((platform) => {
-                const isSelected = profile.platforms.includes(platform.id);
-                return (
-                  <button type="button" key={platform.id} onClick={() => togglePlatform(platform.id)}
-                    className={["text-left p-3 rounded-lg border-2 transition text-sm", isSelected ? "border-accent bg-accent/5" : "border-border hover:border-text2"].join(" ")}>
-                    <span className="font-medium text-text block">{platform.name}</span>
-                    <span className="text-xs text-text2">{platform.description}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-          {saveBar()}
         </section>
 
         {/* Resume & ATS */}
@@ -420,9 +329,6 @@ export default function SettingsPage() {
 
         {/* Apply Mode moved to a launch-time picker (FitChoiceModal on Start) —
             no longer a Settings panel. */}
-
-        {/* Submit Mode (auto / tap) — profile.submit_mode */}
-        <SubmitModePanel />
 
         {/* Writing Style */}
         <section className="bg-surface border border-border rounded-xl p-6 space-y-4">
