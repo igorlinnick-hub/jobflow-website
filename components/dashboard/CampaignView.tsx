@@ -6,6 +6,7 @@ import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import ReviewPanel, { ReviewPending } from "@/components/dashboard/ReviewPanel";
 import { apiGet, apiPost } from "@/lib/api";
 import { createClient } from "@/lib/supabase/client";
+import { PLATFORMS } from "@/lib/constants";
 
 interface ActivityEntry {
   id: string;
@@ -147,6 +148,13 @@ export default function CampaignView({ token: initialToken }: Props) {
   const bridgeSeenRef = useRef(false);
   const bridgeAtRef = useRef(0);
   const [bridgeLost, setBridgeLost] = useState(false);
+  // Live login state per platform, straight from the extension. A run can be perfectly
+  // "active" and still produce nothing because the board signed the user out — Indeed
+  // hides its Easy Apply postings from signed-out visitors — and until now the screen had
+  // no way to say so: green dot, moving log, zero applications, no button (Igor, 09-07:
+  // "показывает что кампания идёт и никакой ошибки или кнопки переподключиться").
+  const [connections, setConnections] = useState<Record<string, { status?: string }>>({});
+  const [loginOpened, setLoginOpened] = useState<string | null>(null);
   // Idle-dismiss: the user says "it's fine, keep waiting". Re-arms on its own the
   // moment the log moves again, so dismissing can't blind the next real stall.
   const [idleDismissedAt, setIdleDismissedAt] = useState<number | null>(null);
@@ -417,6 +425,59 @@ export default function CampaignView({ token: initialToken }: Props) {
     !captcha &&
     !reviewPending &&
     (idleDismissedAt === null || lastActivityTs > idleDismissedAt);
+
+  // Ask the extension who we're signed into. Same bridge PlatformsIndicator uses; polled
+  // because the answer changes the moment the user signs in, and the run should recover
+  // without anyone reloading the page.
+  useEffect(() => {
+    function onMsg(e: MessageEvent) {
+      if (e.source !== window || !e.data || typeof e.data !== "object") return;
+      if (e.data.type === "HIREDROP_PLATFORM_CONNECTIONS" && e.data.ok) {
+        setConnections(e.data.connections || {});
+      }
+      if (e.data.type === "HIREDROP_PLATFORM_LOGIN_OPENED" && e.data.ok) {
+        setLoginOpened(e.data.platform || null);
+      }
+    }
+    window.addEventListener("message", onMsg);
+    const ask = () => window.postMessage({ type: "HIREDROP_GET_PLATFORM_CONNECTIONS" }, "*");
+    ask();
+    const iv = setInterval(ask, 10000);
+    return () => {
+      window.removeEventListener("message", onMsg);
+      clearInterval(iv);
+    };
+  }, []);
+
+  // Which board is the run actually on? The log says so on every page it opens, and that
+  // beats any stored filter — a run started on ZipRecruiter switches to Indeed by itself
+  // when ZR runs dry, and the warning has to follow the run, not the intent.
+  const activePlatform = (() => {
+    for (const a of activity) {
+      const m = /Extension active on ([A-Za-z]+)/.exec(a.message || "");
+      if (m) {
+        const hit = PLATFORMS.find((p) => p.name.toLowerCase() === m[1].toLowerCase());
+        if (hit) return hit;
+      }
+    }
+    return null;
+  })();
+  const signedOut =
+    !!activePlatform &&
+    activePlatform.connectable === true &&
+    connections[activePlatform.id]?.status === "logged_out";
+  // Second, evidence-based tell: the walk is fine, the board just isn't giving us
+  // one-click roles. Said plainly so an empty run never reads as a broken one.
+  const dryPages =
+    !signedOut &&
+    activity.filter((a) => /No Easy Apply jobs on this page/i.test(a.message || "")).length >= 4;
+
+  function openPlatformLogin(id: string) {
+    setLoginOpened(null);
+    window.postMessage({ type: "HIREDROP_OPEN_PLATFORM_LOGIN", platform: id }, "*");
+    // Optimistic: ping.js answers in a tick, but the button must never look dead.
+    setTimeout(() => setLoginOpened((v) => v ?? id), 800);
+  }
 
   async function stopCampaign() {
     setStopping(true);
@@ -789,6 +850,56 @@ export default function CampaignView({ token: initialToken }: Props) {
               {captcha.site || "The site"} is asking for a human check. Switch to the automation window, solve it, and hit submit if the form asks for one — we&apos;ve filled everything else. The campaign resumes automatically.
             </p>
           </div>
+        </div>
+      )}
+
+      {/* The run is moving but the board is stonewalling us. Two shapes, one card:
+          signed out (fixable right here, one button) and dry pages (nothing to fix —
+          say so, so an honest empty stretch never reads as a failure). */}
+      {signedOut && !stopping && !stopped && (
+        <div className="mb-5 flex items-start gap-3 px-4 py-3.5 rounded-xl bg-yellow/10 border border-yellow/30">
+          <svg className="w-5 h-5 text-yellow shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+          <div className="text-sm flex-1 min-w-0">
+            <p className="font-semibold text-text">
+              {activePlatform?.name} doesn&apos;t see you signed in
+            </p>
+            <p className="text-xs text-text2 mt-0.5">
+              Signed-out visitors don&apos;t get one-click apply postings, so the campaign is
+              walking pages and finding almost nothing to apply to. Sign in and it picks up on
+              its own — nothing to restart.
+            </p>
+            <div className="flex items-center gap-2.5 mt-3">
+              <button
+                onClick={() => openPlatformLogin(activePlatform!.id)}
+                className="px-3.5 py-2 rounded-lg text-xs font-medium bg-accent text-white
+                  hover:opacity-90 transition"
+              >
+                Sign in to {activePlatform?.name}
+              </button>
+              {loginOpened === activePlatform?.id && (
+                <span className="text-xs text-text2">
+                  Opened in the automation window — finish there and come back.
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {dryPages && !stopping && !stopped && (
+        <div className="mb-5 flex items-start gap-3 px-4 py-3 rounded-xl bg-surface border border-border text-xs text-text2">
+          <svg className="w-4 h-4 text-accent/70 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <span>
+            <strong className="text-text font-medium">Thin pages right now</strong> — several
+            search pages in a row had no one-click apply roles{activePlatform ? ` on ${activePlatform.name}` : ""}.
+            Nothing is broken: the campaign keeps rotating your keywords and will pick up when
+            it hits a page with them.
+          </span>
         </div>
       )}
 
