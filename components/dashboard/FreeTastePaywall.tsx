@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 
+import { MONTHLY_PRICE, WEEKLY_PRICE } from "@/lib/pricing";
+
 interface FreeTastePaywallProps {
   freeUsed: number;
   freeLimit: number;
@@ -239,13 +241,13 @@ export default function FreeTastePaywall({ freeUsed, freeLimit }: FreeTastePaywa
               href="/dashboard/settings?tab=billing"
               className="block text-center rounded-[10px] bg-accent hover:bg-accent-hover text-white font-semibold px-5 py-3 transition shadow-lg shadow-accent/25"
             >
-              Continue — $9/week
+              Continue — {WEEKLY_PRICE}/week
             </a>
             <a
               href="/dashboard/settings?tab=billing"
               className="block text-center rounded-[10px] border border-accent/40 hover:border-accent text-text font-semibold px-5 py-3 transition"
             >
-              Monthly — $29
+              Monthly — {MONTHLY_PRICE}
             </a>
           </div>
           <p className="mt-3 text-xs text-text2">

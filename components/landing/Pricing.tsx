@@ -1,4 +1,12 @@
 import Link from "next/link";
+
+import {
+  MONTHLY_PRICE,
+  MONTHLY_SAVING_NOTE,
+  WEEKLY_EQUIVALENT_NOTE,
+  WEEKLY_PRICE,
+} from "@/lib/pricing";
+
 import ScrollReveal from "./ScrollReveal";
 
 const INCLUDED = [
@@ -13,15 +21,20 @@ const INCLUDED = [
 const PLANS = [
   {
     name: "Weekly",
-    price: "$9",
+    price: WEEKLY_PRICE,
     period: "/week",
+    // We do the arithmetic for the reader instead of hiding it behind a per-week number
+    // computed on a different billing period — the trick that makes competitor tables
+    // impossible to compare.
+    compare: WEEKLY_EQUIVALENT_NOTE,
     note: "Pay only while you're actively searching.",
     highlighted: false,
   },
   {
     name: "Monthly",
-    price: "$29",
+    price: MONTHLY_PRICE,
     period: "/month",
+    compare: MONTHLY_SAVING_NOTE,
     note: "Best value if your search runs a little longer.",
     highlighted: true,
     badge: "Best value",
@@ -88,6 +101,10 @@ export default function Pricing() {
                   </span>
                   <span className="text-[#6B6B8A]">{plan.period}</span>
                 </div>
+                {/* The honest comparison, stated rather than hidden: weekly shown as its
+                    monthly cost, monthly shown as what it saves. No countdown, no
+                    strikethrough anchor, no third tier that exists to flatter another. */}
+                <p className="mt-1 text-xs text-[#6B6B8A]/80">{plan.compare}</p>
                 <p className="mt-2 text-sm text-[#6B6B8A] flex-1">{plan.note}</p>
                 <Link
                   href="/signup"

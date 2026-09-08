@@ -2,11 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { ApiError, apiGet, createCheckout, openBillingPortal, type StatsResponse } from "@/lib/api";
+import { MONTHLY_PRICE, WEEKLY_PRICE } from "@/lib/pricing";
 import { createClient } from "@/lib/supabase/client";
 
 const PLANS = [
-  { key: "weekly", name: "Weekly", price: "$9", per: "/wk", blurb: "Everything — auto-apply, AI cover letters, ATS resume tailoring. Pay while you search." },
-  { key: "monthly", name: "Monthly", price: "$29", per: "/mo", blurb: "Same product, billed monthly — better value if your search runs longer." },
+  { key: "weekly", name: "Weekly", price: WEEKLY_PRICE, per: "/wk", blurb: "Everything — auto-apply, AI cover letters, ATS resume tailoring. Pay while you search." },
+  { key: "monthly", name: "Monthly", price: MONTHLY_PRICE, per: "/mo", blurb: "Same product, billed monthly — better value if your search runs longer." },
 ];
 
 export default function BillingSection() {
